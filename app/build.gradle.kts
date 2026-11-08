@@ -30,8 +30,8 @@ android {
             storeFile = file(keystore)
             storePassword = System.getenv("CARHOME_KEYSTORE_PASSWORD")
             keyAlias = System.getenv("CARHOME_KEY_ALIAS")
-            // PKCS12 keys share the store password; an empty key password falls back to it.
-            keyPassword = System.getenv("CARHOME_KEY_PASSWORD").orEmpty().ifEmpty { storePassword }
+            // PKCS12 (keytool's default format) has a single password for the store and the key.
+            keyPassword = storePassword
         }
     }
     buildTypes {

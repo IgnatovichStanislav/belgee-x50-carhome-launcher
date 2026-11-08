@@ -1,6 +1,5 @@
 # Builds the APK and the Magisk module on every v* tag and attaches both to a GitHub release.
-# Optional signing secrets: CARHOME_KEYSTORE_BASE64, CARHOME_KEYSTORE_PASSWORD, CARHOME_KEY_ALIAS,
-# CARHOME_KEY_PASSWORD. Without them the APK is signed with a throwaway debug key.
+# Optional signing secrets (PKCS12 key): CARHOME_KEYSTORE_BASE64, CARHOME_KEYSTORE_PASSWORD, CARHOME_KEY_ALIAS. Without them the APK is signed with a throwaway debug key.
 name: Release
 
 on:
@@ -36,7 +35,6 @@ jobs:
         env:
           CARHOME_KEYSTORE_PASSWORD: ${{ secrets.CARHOME_KEYSTORE_PASSWORD }}
           CARHOME_KEY_ALIAS: ${{ secrets.CARHOME_KEY_ALIAS }}
-          CARHOME_KEY_PASSWORD: ${{ secrets.CARHOME_KEY_PASSWORD }}
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease testReleaseUnitTest

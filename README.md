@@ -40,9 +40,9 @@ Easter egg: tap the clock 7 times.
 
 | | |
 |---|---|
-| Car | Belgee X50, mid trim |
+| Car | Belgee X50, Luxury trim (the middle one of Comfort / Luxury / Flagship) |
 | Head unit | ECARX IHU730P, Android 9, 1920×720 screen |
-| Firmware | ECARX_E02_V1.3 (Android 9, build 86) + Lunaris 2.01 |
+| Firmware | ECARX_E02_V1.3 (Android 9, build 86) + [Lunaris](https://lunaris-firmware.ru) 2.01 |
 | Root | Magisk, to install the app as a system (priv-app) app |
 | Computer | ADB over Wi‑Fi or USB, for updates |
 
@@ -117,7 +117,7 @@ Off by default. It exists to find and decode new car signals.
   `magisk/system/priv-app/BGCarHome/BGCarHome.apk` and zip the folder contents.
 - GitHub Actions (`.github/workflows/release.yml`) builds a release for every `v*` tag and attaches the APK and
   the Magisk module. Your own signing key goes into the secrets `CARHOME_KEYSTORE_BASE64`,
-  `CARHOME_KEYSTORE_PASSWORD`, `CARHOME_KEY_ALIAS` and `CARHOME_KEY_PASSWORD`; without them the APK is signed
+  `CARHOME_KEYSTORE_PASSWORD` and `CARHOME_KEY_ALIAS` (a PKCS12 key); without them the APK is signed
   with a debug key.
 
 ## License

@@ -47,9 +47,9 @@
 
 | | |
 |---|---|
-| Автомобиль | Belgee X50, средняя комплектация |
+| Автомобиль | Belgee X50, комплектация Luxury (средняя из Comfort / Luxury / Flagship) |
 | Магнитола | ECARX IHU730P, Android 9, экран 1920×720 |
-| Прошивка | ECARX_E02_V1.3 (Android 9, сборка 86) + Lunaris 2.01 |
+| Прошивка | ECARX_E02_V1.3 (Android 9, сборка 86) + [Lunaris](https://lunaris-firmware.ru) 2.01 |
 | Root | Magisk — нужен, чтобы поставить приложение системным (priv-app) |
 | Компьютер | ADB по Wi‑Fi или USB для установки |
 
@@ -75,7 +75,7 @@
 - **Кто может включить:** только само приложение. Служба записи закрыта для других приложений.
 - **Что пишется:** изменения сигналов машины (скорость, передача, двери, климат, подогревы, предупреждения и т. п.) с отметкой времени.
 - **Что не пишется никогда:** VIN, ICCID, IMEI, MAC Bluetooth, координаты GPS. Эти сигналы отфильтрованы в коде (`PRIVATE_PROPS`).
-- **Где лежит:** `/sdcard/Android/data/by.carhome/files/drive-ГГГГММДД-ЧЧММСС.csv`, новый файл на каждое включение зажигания.
+- **Где лежит:** `/sdcard/Android/data/by.carhome/files/drive-YYYYMMDD-HHMMSS.csv`, новый файл на каждое включение зажигания.
 - **Куда отправляется:** никуда. Приложение не ходит в интернет. Файлы забираете только вы, через ADB.
 - **Как удалить:** удалить файлы в этой папке или удалить приложение.
 
@@ -113,7 +113,7 @@
 - API машины ECARX (`com.ecarx.xui.adaptapi`) и VHAL вызываются через reflection, поэтому проект собирается без SDK производителя.
 - Сборка: `gradlew assembleRelease` → `app/build/outputs/apk/release/bg-car-home-1.0.0-release.apk`.
 - `magisk/` — модуль Magisk без APK. Чтобы собрать его вручную, положите APK в `magisk/system/priv-app/BGCarHome/BGCarHome.apk` и запакуйте содержимое папки в zip.
-- Релиз собирает GitHub Actions (`.github/workflows/release.yml`) по тегу `v*`: APK и модуль Magisk прикладываются к релизу. Свой ключ подписи задаётся секретами `CARHOME_KEYSTORE_BASE64`, `CARHOME_KEYSTORE_PASSWORD`, `CARHOME_KEY_ALIAS`, `CARHOME_KEY_PASSWORD`; без них APK подписывается отладочным ключом.
+- Релиз собирает GitHub Actions (`.github/workflows/release.yml`) по тегу `v*`: APK и модуль Magisk прикладываются к релизу. Свой ключ подписи задаётся секретами `CARHOME_KEYSTORE_BASE64`, `CARHOME_KEYSTORE_PASSWORD`, `CARHOME_KEY_ALIAS` (ключ PKCS12); без них APK подписывается отладочным ключом.
 
 ## Лицензия
 
