@@ -7,14 +7,16 @@ The following files are NOT covered by the MIT License. They belong to their own
 included only so the app looks consistent on the head unit it was built for. Replace them if you
 redistribute the app in a way their owners do not allow.
 
-Images taken from the head-unit firmware (Geely / ECARX / Neusoft)
-  app/src/main/res/drawable-nodpi/car_play_icon.png, car_play_dis_icon.png  (CarPlay app icons)
-  app/src/main/res/drawable-nodpi/hvac_fm_base.png, hvac_fm_face.png, hvac_fm_foot.png  (airflow icon)
+Icons taken from apps on the head unit
+  app/src/main/res/drawable-nodpi/car_play_icon.png, car_play_dis_icon.png
+    CarPlay shortcut icons from the stock ECARX launcher firmware.
+  app/src/main/res/drawable-nodpi/hvac_fm_base.png, hvac_fm_face.png, hvac_fm_foot.png
+    Airflow icon from LunarisApp (Lunaris firmware, https://lunaris-firmware.ru).
 
 Car picture
   app/src/main/res/drawable-nodpi/car_image.webp
   app/src/main/res/drawable-notnight-nodpi/car_image.webp
-  Retouched from a public dealer photo of the Belgee X50. Belgee and X50 are trademarks of their owners.
+  Our own rework of a public dealer photo of the Belgee X50 (cut out, cleaned up, day and night versions). Belgee and X50 are trademarks of their owners.
 
 Trademarks
   Android Auto and its icon are trademarks of Google LLC

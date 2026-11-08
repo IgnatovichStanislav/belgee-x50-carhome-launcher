@@ -85,7 +85,6 @@ Off by default. It exists to find and decode new car signals.
 - Passenger seat belt with nobody on the seat.
 - Android Auto works, but the USB link drops now and then (one cable tested). Wireless mode not tested.
 - Other trims, firmwares, and the Geely Coolray with the same head unit.
-- The latest recorder changes (not exported, resumes only if left on) are built but not tried on the car.
 
 ## Known issues
 
@@ -107,23 +106,10 @@ Off by default. It exists to find and decode new car signals.
 - Tests (unit, day/night screenshots, replay of recorded drives) and CI.
 - Better car pictures.
 
-## Build
-
-- Kotlin, Android Gradle Plugin, JDK 17. No third-party libraries in the app.
-- The ECARX car API (`com.ecarx.xui.adaptapi`) and VHAL are called through reflection, so the project builds
-  without the vendor SDK.
-- `gradlew assembleRelease` → `app/build/outputs/apk/release/bg-car-home-1.0.0-release.apk`.
-- `magisk/` holds the Magisk module without the APK. To build it by hand, put the APK at
-  `magisk/system/priv-app/BGCarHome/BGCarHome.apk` and zip the folder contents.
-- GitHub Actions (`.github/workflows/release.yml`) builds a release for every `v*` tag and attaches the APK and
-  the Magisk module. Your own signing key goes into the secrets `CARHOME_KEYSTORE_BASE64`,
-  `CARHOME_KEYSTORE_PASSWORD` and `CARHOME_KEY_ALIAS` (a PKCS12 key); without them the APK is signed
-  with a debug key.
-
 ## License
 
 The code is [MIT](LICENSE).
 
-Third-party material is not covered by MIT and is listed in [NOTICE](NOTICE): images from the head-unit
-firmware (Geely, ECARX), the Android Auto icon (a Google trademark), Apple CarPlay (an Apple trademark), the
-car photo, the GEELY font (Geely) and Tektur ([SIL OFL 1.1](licenses/Tektur-OFL.txt)).
+Third-party material is not covered by MIT and is listed in [NOTICE](NOTICE): the CarPlay icons from the
+stock ECARX launcher, the airflow icon from LunarisApp, the Android Auto icon (a Google trademark), Apple CarPlay
+(an Apple trademark), the dealer photo our car picture is based on, the GEELY font (Geely) and Tektur ([SIL OFL 1.1](licenses/Tektur-OFL.txt)).
