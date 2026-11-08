@@ -40,9 +40,9 @@ Easter egg: tap the clock 7 times.
 
 | | |
 |---|---|
-| Car | Belgee X50 (tested); most likely any Geely Coolray SX11 with the same head unit |
+| Car | Belgee X50, mid trim |
 | Head unit | ECARX IHU730P, Android 9, 1920×720 screen |
-| Firmware | tested on Lunaris 2.01 |
+| Firmware | ECARX_E02_V1.3 (Android 9, build 86) + Lunaris 2.01 |
 | Root | Magisk, to install the app as a system (priv-app) app |
 | Computer | ADB over Wi‑Fi or USB, for updates |
 
@@ -84,7 +84,7 @@ Off by default. It exists to find and decode new car signals.
 - Hood: the signal is known, opening the hood was never recorded.
 - Passenger seat belt with nobody on the seat.
 - Android Auto works, but the USB link drops now and then (one cable tested). Wireless mode not tested.
-- Other trims, firmwares and the Geely Coolray itself.
+- Other trims, firmwares, and the Geely Coolray with the same head unit.
 - The latest recorder changes (not exported, resumes only if left on) are built but not tried on the car.
 
 ## Known issues
