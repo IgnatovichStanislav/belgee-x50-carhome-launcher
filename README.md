@@ -1,125 +1,129 @@
 # BG Car Home
 
-Свой главный экран для штатной магнитолы **Belgee X50** (Geely Coolray, SX11). Показывает данные машины в реальном времени, управляет подогревами и климатом, запускает CarPlay и Android Auto.
+[Русская версия](README.ru.md)
 
-Сделано для себя и бесплатно. Автор — Станислав Игнатович.
+A custom home screen for the stock head unit of the **Belgee X50** (Geely Coolray, SX11). It shows live car
+data, switches the heaters, controls the climate and launches Apple CarPlay and Android Auto. Built for my
+own car, free to use and to fork.
 
-| День | Ночь |
+| Day | Night |
 |---|---|
-| ![День](screenshots/hu-day.png) | ![Ночь](screenshots/hu-night.png) |
+| ![Day theme](screenshots/hu-day.png) | ![Night theme](screenshots/hu-night.png) |
 
-> Это неофициальный проект. Он не связан с Belgee, Geely или ECARX. Всё, что вы ставите на магнитолу, вы делаете на свой риск.
+> Unofficial project, not affiliated with Belgee, Geely or ECARX. Installing it needs root on the head unit;
+> you do it at your own risk. The interface is in Russian for now.
 
-## Что умеет
+## What it does
 
-**Данные машины, вживую**
-- скорость, передача (P R N D), запас хода и топливо в литрах;
-- пробег и пробег за поездку, километры до ТО;
-- напряжение аккумулятора с порогом по состоянию мотора (11,8 В заглушен, 12,0 В работает);
-- состояние ОЖ, масла, КПП и шин по предупреждениям приборки;
-- ремни водителя и пассажира;
-- открытые двери, багажник и капот;
-- AutoHold: выключен, готов, держит.
+**Live car data.** Speed, gear (P R N D), range and fuel in litres, odometer and trip, distance to the next
+service, battery voltage (warning threshold depends on whether the engine runs: 11.8 V off, 12.0 V on),
+coolant, oil, gearbox and tyre warnings from the cluster, driver and passenger seat belts, open doors, trunk
+and hood, AutoHold (off, armed, holding).
 
-**Управление**
-- подогрев руля, форсунок омывателя и лобового стекла кнопками на экране;
-- плитка климата: температура, обдув, вентилятор, A/C, AUTO, рециркуляция; по нажатию открывает штатный климат.
+**Controls.** Heated steering wheel, washer nozzles and windshield as on-screen buttons. A climate card with
+temperature, airflow, fan speed, A/C, AUTO and recirculation; tapping it opens the stock climate app.
 
-**Телефон**
-- Apple CarPlay — статус подключения на плитке, запуск по нажатию;
-- Android Auto через [Open Headunit](https://github.com/andreknieriem/open-headunit) — статус на плитке («Подключение…», «Подключён», «Нет связи»), запуск по нажатию.
+**Phone projection.** Apple CarPlay and Android Auto tiles show the real connection status and open the
+projection on tap. Android Auto runs through [Open Headunit](https://github.com/andreknieriem/open-headunit);
+its tile shows «Подключение…» (connecting), «Подключён» (connected) and «Нет связи» (link lost).
 
-**Внешний вид**
-- дневная и ночная тема; авто-переключение по восходу и закату (сигнал день/ночь машины на этой модели не работает);
-- ручной выбор темы: долгое нажатие на дату переключает «Авто → День → Ночь»;
-- шрифт магнитолы GEELY с добавленной кириллицей (Tektur, OFL);
-- полноэкранный режим, без верхней строки состояния.
+**Day and night themes.** Switched automatically at sunrise and sunset, because the car's own day/night signal
+reads "night" all day on this model. Long-press the date to cycle Auto → Day → Night. The head unit's GEELY font
+is extended with Cyrillic from Tektur (OFL). Full screen, no status bar.
 
-**Запись поездок** (необязательно, для отладки и новых сигналов)
-- долгое нажатие на часы включает и выключает запись, сверху появляется красная метка «● Запись данных»;
-- подробности и безопасность — в разделе [Запись поездок](#запись-поездок).
+**Drive recorder (optional).** Long-press the clock to log every change of the car signals to a CSV file.
+It is how the signals in this app were decoded. See [Drive recorder](#drive-recorder).
 
-Пасхалка: 7 быстрых нажатий на часы.
+Easter egg: tap the clock 7 times.
 
-## Системные требования
+## Requirements
 
 | | |
 |---|---|
-| Автомобиль | Belgee X50 (проверено), скорее всего Geely Coolray SX11 с той же магнитолой |
-| Магнитола | ECARX IHU730P, Android 9, экран 1920×720 |
-| Прошивка | проверено на Lunaris 2.01 |
-| Root | Magisk — нужен, чтобы поставить приложение системным (priv-app) |
-| Компьютер | ADB по Wi‑Fi или USB для установки |
+| Car | Belgee X50 (tested); most likely any Geely Coolray SX11 with the same head unit |
+| Head unit | ECARX IHU730P, Android 9, 1920×720 screen |
+| Firmware | tested on Lunaris 2.01 |
+| Root | Magisk, to install the app as a system (priv-app) app |
+| Computer | ADB over Wi‑Fi or USB, for updates |
 
-Почему нужен root: данные машины и управление подогревами доступны только системным приложениям с правами `CAR_VENDOR_EXTENSION` и `CONTROL_CAR_CLIMATE`.
+Why root: car data and heater control are only available to system apps holding `CAR_VENDOR_EXTENSION` and
+`CONTROL_CAR_CLIMATE`.
 
-Для Android Auto дополнительно нужен [Open Headunit](https://github.com/andreknieriem/open-headunit) 3.5.0 (ставится обычным приложением) и Android‑телефон с Android Auto.
+For Android Auto you also need [Open Headunit](https://github.com/andreknieriem/open-headunit) 3.5.0
+(a regular app) and an Android phone with Android Auto.
 
-## Установка
+## Install
 
-1. Скачать `bg-car-home-magisk-module.zip` со страницы [Releases](../../releases). В нём уже лежит APK.
-2. Скопировать zip на магнитолу и установить в приложении Magisk → Модули. Перезагрузить.
-3. Нажать «Домой» и выбрать BG Car Home главным экраном.
+1. Download `bg-car-home-magisk-module.zip` from [Releases](../../releases). The APK is inside.
+2. Copy the zip to the head unit, install it in Magisk → Modules and reboot.
+3. Press Home and choose BG Car Home as the home app.
 
-Обновление без перезагрузки: `adb install -r bg-car-home-1.0.0-release.apk` (APK тоже есть в Releases). Модуль нужен только при первой установке и когда приложению добавляются системные права.
+Updates without a reboot: `adb install -r bg-car-home-1.0.0-release.apk` (also attached to each release).
+The module is only needed for the first install and when the app gets new system permissions.
 
-Откат: удалить модуль «BG Car Home launcher» в Magisk и перезагрузить. Штатный лаунчер остаётся на месте.
+Roll back: remove the "BG Car Home launcher" module in Magisk and reboot. The stock launcher stays in place.
 
-## Запись поездок
+## Drive recorder
 
-Запись нужна, чтобы находить и расшифровывать новые сигналы машины. По умолчанию выключена.
+Off by default. It exists to find and decode new car signals.
 
-- **Как включить:** долгое нажатие на часы. Если оставить запись включённой, после перезагрузки магнитолы она продолжится; выключили — после перезагрузки не включится.
-- **Кто может включить:** только само приложение. Служба записи закрыта для других приложений.
+- **Turning it on:** long-press the clock; a red «● Запись данных» badge appears. If you leave it on, it
+  resumes after a reboot; if you turn it off, it stays off.
+- **Who can start it:** only the app itself. The recorder service is not exported to other apps.
+- **What is logged:** changes of car signals (speed, gear, doors, climate, heaters, warnings and so on) with
+  timestamps.
+- **What is never logged:** VIN, ICCID, IMEI, Bluetooth MAC and GPS coordinates. These signals are filtered
+  out in code (`PRIVATE_PROPS`).
+- **Where it goes:** `/sdcard/Android/data/by.carhome/files/drive-YYYYMMDD-HHMMSS.csv`, a new file for every
+  ignition cycle. Nowhere else: the app has no internet permission. Only you can pull the files, over ADB.
+- **Deleting:** delete the files in that folder or uninstall the app.
 
-- **Что пишется:** изменения сигналов машины (скорость, передача, двери, климат, подогревы, предупреждения и т. п.) с отметкой времени.
-- **Что не пишется никогда:** VIN, ICCID, IMEI, MAC Bluetooth, координаты GPS. Эти сигналы отфильтрованы в коде (`PRIVATE_PROPS`).
-- **Где лежит:** `/sdcard/Android/data/by.carhome/files/drive-ГГГГММДД-ЧЧММСС.csv`, новый файл на каждое включение зажигания.
-- **Куда отправляется:** никуда. Приложение не ходит в интернет. Файлы забираете только вы, через ADB.
-- **Как удалить:** удалить файлы в этой папке или удалить приложение.
+## Not tested yet
 
-## Что не проверено
+- AutoHold: "armed" and "holding" are decoded from a single drive and need another check.
+- Hood: the signal is known, opening the hood was never recorded.
+- Passenger seat belt with nobody on the seat.
+- Android Auto works, but the USB link drops now and then (one cable tested). Wireless mode not tested.
+- Other trims, firmwares and the Geely Coolray itself.
+- The latest recorder changes (not exported, resumes only if left on) are built but not tried on the car.
 
-- AutoHold: состояния «готов» и «держит» расшифрованы по одной поездке, нужна повторная проверка.
-- Капот: сигнал найден, открытие капота не записано.
-- Ремень пассажира: как ведёт себя датчик, когда на сиденье никого нет.
-- Android Auto: работает, но по USB бывают обрывы связи (на одном кабеле; другой кабель не проверен). Беспроводной режим не проверен.
-- Другие комплектации, прошивки и Geely Coolray.
-- Сборка релиза на GitHub Actions ещё не запускалась.
-- Последняя версия записи (закрытая служба, автозапуск только если запись оставили включённой) собрана, но на магнитоле не проверена.
+## Known issues
 
-## Известные проблемы
+- The Home button on the system nav bar opens the stock launcher, not BG Car Home.
+- The stock QDLink app (Q‑Drive Link) grabs Android phones on USB. Disable it with `pm disable-user`; it still
+  starts after a reboot and sometimes gets in the way of Android Auto.
+- The system nav bar on the left does not switch to the light theme.
+- No outside temperature, RPM or instant fuel consumption: the head unit does not receive them or they read
+  as garbage.
 
-- Кнопка «Домой» на системной полоске открывает штатный лаунчер, а не BG Car Home.
-- Штатное приложение QDLink (Q‑Drive Link) перехватывает Android‑телефон по USB. Его нужно отключить (`pm disable-user`), но после перезагрузки оно всё равно запускается и иногда мешает Android Auto.
-- Системная полоска слева не переключается на светлую тему.
-- Нет датчика наружной температуры, оборотов и мгновенного расхода — на шине магнитолы их нет или они не читаются.
+## Plans
 
-## Планы
+- LSPosed module: Home button → BG Car Home, no pull-down shade, no CarPlay pop-up hints.
+- Get rid of QDLink for good.
+- Light theme for the system nav bar.
+- Climate presets "Summer" and "Winter" for remote engine start.
+- Sync day/night with Android Auto.
+- Localization: Russian, English, Chinese and Malay, chosen at build time.
+- Tests (unit, day/night screenshots, replay of recorded drives) and CI.
+- Better car pictures.
 
-- Модуль LSPosed: кнопка «Домой» → BG Car Home, отключение верхней шторки, без всплывающих подсказок CarPlay.
-- Надёжно убрать QDLink.
-- Светлая тема для системной полоски.
-- Пресеты климата «Лето» и «Зима» при удалённом запуске.
-- Синхронизация дня и ночи с Android Auto.
-- Локализация: русский, английский, китайский, малайский. Язык выбирается при сборке.
-- Тесты (unit, скриншоты день/ночь, прогон записанных поездок) и CI.
-- Улучшенные картинки машины.
+## Build
 
-## Сборка и разработка
+- Kotlin, Android Gradle Plugin, JDK 17. No third-party libraries in the app.
+- The ECARX car API (`com.ecarx.xui.adaptapi`) and VHAL are called through reflection, so the project builds
+  without the vendor SDK.
+- `gradlew assembleRelease` → `app/build/outputs/apk/release/bg-car-home-1.0.0-release.apk`.
+- `magisk/` holds the Magisk module without the APK. To build it by hand, put the APK at
+  `magisk/system/priv-app/BGCarHome/BGCarHome.apk` and zip the folder contents.
+- GitHub Actions (`.github/workflows/release.yml`) builds a release for every `v*` tag and attaches the APK and
+  the Magisk module. Your own signing key goes into the secrets `CARHOME_KEYSTORE_BASE64`,
+  `CARHOME_KEYSTORE_PASSWORD`, `CARHOME_KEY_ALIAS` and `CARHOME_KEY_PASSWORD`; without them the APK is signed
+  with a debug key.
 
-- Kotlin, Android Gradle Plugin, JDK 17. Без сторонних библиотек в приложении.
-- API машины ECARX (`com.ecarx.xui.adaptapi`) и VHAL вызываются через reflection, поэтому проект собирается без SDK производителя.
-- Сборка: `gradlew assembleRelease` → `app/build/outputs/apk/release/bg-car-home-1.0.0-release.apk`.
-- `magisk/` — модуль Magisk без APK. Чтобы собрать его вручную, положите APK в `magisk/system/priv-app/BGCarHome/BGCarHome.apk` и запакуйте содержимое папки в zip.
-- Релиз собирает GitHub Actions (`.github/workflows/release.yml`) по тегу `v*`: APK и модуль Magisk прикладываются к релизу. Свой ключ подписи задаётся секретами `CARHOME_KEYSTORE_BASE64`, `CARHOME_KEYSTORE_PASSWORD`, `CARHOME_KEY_ALIAS`, `CARHOME_KEY_PASSWORD`; без них APK подписывается отладочным ключом.
+## License
 
-## Лицензия
+The code is [MIT](LICENSE).
 
-Код — [MIT](LICENSE).
-
-Сторонние материалы не подпадают под MIT, они перечислены в [NOTICE](NOTICE):
-- картинки из прошивки магнитолы (Geely, ECARX);
-- значок Android Auto — товарный знак Google; Apple CarPlay — товарный знак Apple;
-- фото автомобиля;
-- шрифт GEELY (Geely) и Tektur ([SIL OFL 1.1](licenses/Tektur-OFL.txt)).
+Third-party material is not covered by MIT and is listed in [NOTICE](NOTICE): images from the head-unit
+firmware (Geely, ECARX), the Android Auto icon (a Google trademark), Apple CarPlay (an Apple trademark), the
+car photo, the GEELY font (Geely) and Tektur ([SIL OFL 1.1](licenses/Tektur-OFL.txt)).
