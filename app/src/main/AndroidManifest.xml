@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Car data: ECARX adapt API + VHAL. Privileged ones are whitelisted by the Magisk module. -->
+    <uses-permission android:name="android.car.permission.CAR_VENDOR_EXTENSION" />
+    <uses-permission android:name="android.car.permission.CAR_ENGINE_DETAILED" />
+    <uses-permission android:name="android.car.permission.CAR_SPEED" />
+    <uses-permission android:name="android.car.permission.CAR_POWERTRAIN" />
+    <uses-permission android:name="android.car.permission.CAR_ENERGY" />
+    <uses-permission android:name="android.car.permission.CAR_MILEAGE" />
+    <uses-permission android:name="android.car.permission.CAR_TIRES" />
+    <uses-permission android:name="android.car.permission.CAR_INFO" />
+    <uses-permission android:name="android.car.permission.CAR_EXTERIOR_ENVIRONMENT" />
+    <uses-permission android:name="android.car.permission.CONTROL_CAR_CLIMATE" />
+    <!-- Wi-Fi SSID (needs location on Android 9) and Bluetooth device name -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Day/night is locked on this firmware; as a priv-app we may switch it so the stock nav/status bars follow our theme. -->
+    <uses-permission android:name="android.permission.MODIFY_DAY_NIGHT_MODE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.CarHome">
+        <!-- Authorship metadata (readable with `aapt dump xmltree` or PackageManager.getApplicationInfo). -->
+        <meta-data android:name="by.carhome.author" android:value="Stanislav Ihnatovich (Станислав Игнатович)" />
+        <meta-data android:name="by.carhome.homepage" android:value="https://github.com/IgnatovichStanislav" />
+        <meta-data android:name="by.carhome.linkedin" android:value="https://www.linkedin.com/in/stanislau-ihnatovich-link" />
+        <activity
+            android:name=".HomeActivity"
+            android:exported="true"
+            android:configChanges="uiMode"
+            android:launchMode="singleTask"
+            android:screenOrientation="landscape"
+            android:stateNotNeeded="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!-- Drive recorder (long-press the clock). Exported so it can also be toggled via adb. -->
+        <!-- Not exported: only this app (the clock long-press) starts or stops the recorder. -->
+        <service
+            android:name=".rec.RecorderService"
+            android:exported="false" />
+        <!-- Resumes recording after a reboot only if the user left it on. BOOT_COMPLETED comes from the system. -->
+        <receiver
+            android:name=".rec.BootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

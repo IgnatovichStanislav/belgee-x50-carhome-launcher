@@ -1,0 +1,28 @@
+BG Car Home
+Copyright (c) 2026 Stanislav Ihnatovich. Source code under the MIT License (see LICENSE).
+
+This project is not affiliated with or endorsed by Belgee, Geely, ECARX, Apple or Google.
+
+The following files are NOT covered by the MIT License. They belong to their owners and are
+included only so the app looks consistent on the head unit it was built for. Replace them if you
+redistribute the app in a way their owners do not allow.
+
+Images taken from the head-unit firmware (Geely / ECARX / Neusoft)
+  app/src/main/res/drawable-nodpi/car_play_icon.png, car_play_dis_icon.png  (CarPlay app icons)
+  app/src/main/res/drawable-nodpi/hvac_fm_base.png, hvac_fm_face.png, hvac_fm_foot.png  (airflow icon)
+
+Car picture
+  app/src/main/res/drawable-nodpi/car_image.webp
+  app/src/main/res/drawable-notnight-nodpi/car_image.webp
+  Retouched from a public dealer photo of the Belgee X50. Belgee and X50 are trademarks of their owners.
+
+Trademarks
+  Android Auto and its icon are trademarks of Google LLC
+    (app/src/main/res/drawable-nodpi/android_auto_icon.png, android_auto_dis_icon.png).
+  Apple CarPlay is a trademark of Apple Inc.
+
+Font: app/src/main/res/font/bg_sans.ttf ("BG Car Home Sans")
+  Latin letters and digits: GEELY Regular, the system font of the Geely head unit (Geely).
+  Cyrillic: Tektur, Copyright 2023 The Tektur Project Authors (https://github.com/hyvyys/Tektur),
+  SIL Open Font License 1.1 (licenses/Tektur-OFL.txt).
+  "BG Car Home Sans" is a modified font and does not use the Reserved Font Name of Tektur.

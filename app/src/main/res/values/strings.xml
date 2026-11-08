@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BG Car Home</string>
+    <!-- Easter egg: 7 quick taps on the clock. -->
+    <string name="about_author">BG Car Home · сделал Станислав Игнатович\nдля себя и для всех — бесплатно и с открытым кодом</string>
+    <string name="about_version">версия %1$s · сборка %2$s</string>
+</resources>

@@ -1,0 +1,320 @@
+package by.carhome.ui
+
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.ColorFilter
+import android.graphics.Matrix
+import android.graphics.Paint
+import android.graphics.PixelFormat
+import android.graphics.RadialGradient
+import android.graphics.Shader
+import android.graphics.drawable.Drawable
+import android.view.Gravity
+import android.view.View
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
+import by.carhome.AppSpec
+import by.carhome.Apps
+import by.carhome.R
+import by.carhome.TileKind
+import by.carhome.data.BatteryLevel
+import by.carhome.data.CarState
+import by.carhome.data.Heat
+import by.carhome.data.Thresholds
+import java.util.Locale
+import kotlin.math.abs
+import kotlin.math.roundToInt
+
+/**
+ * Home screen, 1760x720 window (home-review5 design: 1760x670 mockup, the extra 50 px spread vertically).
+ * [iconLoader] returns an app icon (null → letter tile).
+ */
+class HomeView(
+    ctx: Context,
+    private val iconLoader: (AppSpec) -> Drawable? = { null },
+) : FrameLayout(ctx) {
+    var onAppClick: ((AppSpec) -> Unit)? = null
+    var onClockLongPress: (() -> Unit)? = null
+    var onClockTap: (() -> Unit)? = null
+    var onDateLongPress: (() -> Unit)? = null
+
+    /** A heater button was tapped; the button has already switched itself (optimistic). */
+    var onHeatClick: ((Heat, Boolean) -> Unit)? = null
+
+    /** Tests turn the streak animation off. */
+    var motionEnabled = true
+
+    private val d = ctx.dpf(1f)
+    private val WRAP = LayoutParams.WRAP_CONTENT
+
+    private fun px(v: Float) = (v * d).roundToInt()
+    private fun paints(vararg p: Paint) = arrayOf(*p)
+
+    // --- widgets updated from the car state ---
+    private val clock = RunView(ctx, paints(ctx.textPaint(64f, Fonts.light, R.color.text)))
+    private val date = RunView(ctx, paints(ctx.textPaint(22f, Fonts.regular, R.color.text_dim)))
+    private val wifi = StatusRow(ctx, R.drawable.ic_wifi)
+    private val bt = StatusRow(ctx, R.drawable.ic_bt)
+    private val tripVal = valueRun(32f, Fonts.regular, R.color.text, 20f)
+    private val odoVal = RunView(ctx, paints(ctx.textPaint(32f, Fonts.regular, R.color.text_2), ctx.textPaint(20f, Fonts.regular, R.color.text_dim)), gapL = 3 * d, gapR = 0f)
+    private val speed = RunView(
+        ctx,
+        paints(ctx.textPaint(150f, Fonts.light, R.color.text).apply { letterSpacing = -2f / 150f },
+            ctx.textPaint(28f, Fonts.regular, R.color.text_dim)),
+        gapL = 6 * d, fixedW = px(352f),
+    )
+    private val rangeKey = RunView(ctx, paints(ctx.textPaint(20f, Fonts.regular, R.color.text_dim)))
+    private val rangeBig = RunView(
+        ctx,
+        paints(ctx.textPaint(56f, Fonts.regular, R.color.text), ctx.textPaint(24f, Fonts.regular, R.color.text_dim)),
+        gapL = 6 * d, gapR = 8 * d, fixedW = px(352f),
+    )
+    private val fuelBar = ProgressBarView(ctx, R.color.bar_track, R.color.accent, 10f)
+    private val gear = GearView(ctx)
+    private val rangeTile = View(ctx).apply { setBackgroundResource(R.drawable.tile) }
+    private val rangeBadge = BadgeView(ctx, 24f, 17f)
+    private val state = StateTileView(ctx)
+    private val belts = BeltsView(ctx)
+    private val autoHold = AutoHoldView(ctx)
+    private val doors = DoorBanner(ctx)
+    private val battery = StatTileView(ctx, listOf("Аккумулятор"))
+    private val heaters = arrayOf(
+        HeaterButton(ctx, R.drawable.ic_heat_wheel, "Руль"),
+        HeaterButton(ctx, R.drawable.ic_heat_nozzle, "Форсунки"),
+        HeaterButton(ctx, R.drawable.ic_heat_glass, "Лобовое"),
+    )
+    private val streaks = StreakLayer(ctx, floatArrayOf(300f, 340f, 380f), longArrayOf(0, 500, 1100))
+    private val climate = ClimateCardView(ctx)
+    private val carPlay: StatusCardView
+    private val androidAuto: StatusCardView
+
+    private val critColor = ctx.getColor(R.color.crit)
+    private val softCrit = ctx.getColor(R.color.crit_soft)
+    private val textColor = ctx.getColor(R.color.text)
+    private val dimColor = ctx.getColor(R.color.text_dim)
+    private val okColor = ctx.getColor(R.color.ok)
+    private val accentColor = ctx.getColor(R.color.accent)
+
+    private var last: CarState? = null
+    private var paused = false
+
+    private fun valueRun(sizeDp: Float, tf: android.graphics.Typeface, color: Int, unitDp: Float) =
+        RunView(context, paints(context.textPaint(sizeDp, tf, color), context.textPaint(unitDp, Fonts.regular, R.color.text_dim)),
+            gapL = 3 * d, gapR = 8 * d)
+
+    private fun put(v: View, x: Float, y: Float, w: Int = WRAP, h: Int = WRAP) {
+        addView(v, LayoutParams(w, h).apply { leftMargin = px(x); topMargin = px(y) })
+    }
+
+    private fun putRun(v: RunView, x: Float, baseline: Float) {
+        addView(v, LayoutParams(if (v.fixedW > 0) v.fixedW else WRAP, WRAP).apply {
+            leftMargin = px(x); topMargin = (baseline * d - v.ascent).roundToInt()
+        })
+    }
+
+    private fun tile(x: Float, y: Float, w: Float, h: Float) = put(View(context).apply { setBackgroundResource(R.drawable.tile) }, x, y, px(w), px(h))
+
+    private fun group(key: RunView?, keyBase: Float, valueView: View, valueTop: Float, h: Float, divider: Boolean, trailing: Boolean = true): InfoGroup {
+        val g = InfoGroup(context, px(h), divider, trailing)
+        if (key != null) g.addView(key, LayoutParams(WRAP, WRAP).apply { topMargin = (keyBase * d - key.ascent).roundToInt() })
+        g.addView(valueView, LayoutParams(WRAP, WRAP).apply { topMargin = px(valueTop) })
+        return g
+    }
+
+    private fun vTop(r: RunView) = 57f - r.ascent / d
+
+    private fun keyRun(text: String): RunView =
+        RunView(context, paints(context.textPaint(18f, Fonts.regular, R.color.text_dim))).apply { setParts(text) }
+
+    init {
+        setBackgroundResource(R.drawable.scene)
+        clipChildren = false
+        // Rounded left corners like the system nav bar next to us; the right edge is the screen edge, so the
+        // outline is extended past it to keep those corners square.
+        outlineProvider = object : android.view.ViewOutlineProvider() {
+            override fun getOutline(v: View, o: android.graphics.Outline) {
+                val r = px(CORNER_DP)
+                o.setRoundRect(0, 0, v.width + r, v.height, r.toFloat())
+            }
+        }
+        clipToOutline = true
+
+        // car scene (baked: centred, masked edges) + speed streaks
+        put(ImageView(ctx).apply {
+            setImageResource(R.drawable.car_image); scaleType = ImageView.ScaleType.FIT_XY
+        }, 450f, 110f, px(842f), px(390f))
+        put(streaks, 440f, 110f, px(880f), px(400f))
+
+        // clock / date
+        putRun(clock, 16f, 64f)
+        putRun(date, 20f, 102f)
+        clock.setOnLongClickListener { onClockLongPress?.invoke(); true }
+        clock.setOnClickListener { onClockTap?.invoke() }
+        date.setOnLongClickListener { onDateLongPress?.invoke(); true }
+        clock.isLongClickable = true
+
+        // Wi-Fi / Bluetooth
+        val lgrp = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
+        fun lp(h: Float) = LinearLayout.LayoutParams(WRAP, px(h)).apply { gravity = Gravity.CENTER_VERTICAL }
+        lgrp.addView(group(keyRun("Wi-Fi"), 17f, wifi, 25f, 66f, true), lp(66f))
+        lgrp.addView(group(keyRun("Bluetooth"), 17f, bt, 25f, 66f, true), lp(66f))
+        put(lgrp, 266f, 16f, WRAP, px(80f))
+        // Long dates ("понедельник, 30 сентября") are wider than the clock: keep the divider clear of them.
+        val pushWifi = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            val lp = lgrp.layoutParams as LayoutParams
+            val left = maxOf(px(266f), maxOf(clock.right, date.right) + px(22f))
+            if (lp.leftMargin != left) { lp.leftMargin = left; lgrp.post { lgrp.requestLayout() } }
+        }
+        clock.addOnLayoutChangeListener(pushWifi)
+        date.addOnLayoutChangeListener(pushWifi)
+
+        // trip / odometer
+        val trg = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
+        trg.addView(group(keyRun("Поездка"), 20f, tripVal, vTop(tripVal), 71f, false), lp(71f))
+        trg.addView(group(keyRun("Пробег"), 20f, odoVal, vTop(odoVal), 71f, true, false), lp(71f))
+        addView(trg, LayoutParams(WRAP, px(80f)).apply { gravity = Gravity.END or Gravity.TOP; rightMargin = px(20f); topMargin = px(16f) })
+
+        // left tiles
+        tile(16f, 115f, 402f, 238f)
+        putRun(RunView(ctx, paints(ctx.textPaint(20f, Fonts.regular, R.color.text_dim))).apply { setParts("Скорость") }, 41f, 149f)
+        putRun(speed, 41f, 290f)
+        put(rangeTile, 16f, 368f, px(402f), px(192f))
+        putRun(rangeKey.apply { setParts("Запас хода") }, 41f, 402f)
+        put(rangeBadge, 41f, 385f)
+        rangeBadge.visibility = View.GONE
+        putRun(rangeBig, 41f, 466f)
+        put(fuelBar, 41f, 500f, px(352f), px(18f))
+        fuelBar.mark = Thresholds.FUEL_LOW_LITERS / by.carhome.data.EcarxCarDataSource.FUEL_TANK_L
+
+        // right column
+        put(state, 1342f, 115f, px(402f), px(238f))
+        put(battery, 1342f, 368f, px(402f), px(84f))
+        val heat = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
+        val kinds = Heat.values()
+        for ((i, b) in heaters.withIndex()) {
+            b.setOnClickListener {
+                b.on = !b.on
+                onHeatClick?.invoke(kinds[i], b.on)
+            }
+            heat.addView(b, LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1f).apply { if (i > 0) leftMargin = px(10f) })
+        }
+        put(heat, 1342f, 466f, px(402f), px(94f))
+
+        // under the car: gear, AutoHold, belts; door banner above the car
+        // Row under the car is symmetric inside the car area (x 434..1326, centre 880):
+        // AutoHold flush left, gears centred under the car (238 wide → 761), belts chip flush right next to the heaters.
+        put(autoHold, 434f, 508f, px(240f), px(52f))
+        put(gear, 761f, 508f)
+        addView(belts, LayoutParams(WRAP, px(52f)).apply {
+            gravity = Gravity.TOP or Gravity.END; rightMargin = px(434f); topMargin = px(508f)
+        })
+        put(doors, 530f, 124f, px(700f), px(46f))
+        doors.visibility = View.GONE
+
+        // bottom row
+        val row = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
+        var cp: StatusCardView? = null
+        var aa: StatusCardView? = null
+        for ((i, spec) in Apps.list.withIndex()) {
+            val (w, v) = when (spec.kind) {
+                TileKind.PLAIN -> 169f to AppTileView(ctx, spec, iconLoader(spec)
+                    ?: LetterIconDrawable(ctx, spec.letter, spec.color)) as View
+                TileKind.ALL_APPS -> 350f to AppTileView(ctx, spec, AllAppsIconDrawable(ctx), spec.label) as View
+                TileKind.CLIMATE -> 440f to climate
+                TileKind.CARPLAY -> 270f to StatusCardView(ctx, spec, ctx.getDrawable(R.drawable.car_play_icon)!!,
+                    ctx.getDrawable(R.drawable.car_play_dis_icon)!!).also { cp = it }
+                TileKind.ANDROID_AUTO -> 270f to StatusCardView(ctx, spec, ctx.getDrawable(R.drawable.android_auto_icon)!!,
+                    ctx.getDrawable(R.drawable.android_auto_dis_icon)!!).also { aa = it }
+            }
+            v.setOnClickListener { onAppClick?.invoke(spec) }
+            row.addView(v, LinearLayout.LayoutParams(px(w), px(110f)).apply { if (i > 0) leftMargin = px(12f) })
+        }
+        carPlay = cp!!
+        androidAuto = aa!!
+        put(row, 16f, 600f, WRAP, px(110f))
+    }
+
+    fun setClock(time: String, dateText: String) {
+        clock.setParts(time)
+        date.setParts(dateText)
+    }
+
+    /** onPause/onStop: stop every animator (streaks, climate crossfade). */
+    fun pauseAnimations() {
+        paused = true
+        streaks.pause()
+        climate.cancelAnimations()
+    }
+
+    fun resumeAnimations() {
+        paused = false
+        updateMotion()
+    }
+
+    private fun updateMotion() {
+        if (!paused && motionEnabled) streaks.setActive((last?.speedKmh ?: 0) > 0)
+    }
+
+    private fun grouped(n: Int): String {
+        val s = abs(n).toString()
+        val sb = StringBuilder()
+        for (i in s.indices) {
+            if (i > 0 && (s.length - i) % 3 == 0) sb.append(' ')
+            sb.append(s[i])
+        }
+        return if (n < 0) "−$sb" else sb.toString()
+    }
+
+    private fun f1(v: Float?) = if (v == null) "—" else String.format(Locale.US, "%.1f", v)
+
+    /** Updates only the widgets whose values changed. */
+    fun render(n: CarState) {
+        val o = last
+        last = n
+        if (o == null || o.wifiSsid != n.wifiSsid) wifi.set(n.wifiSsid ?: "нет сети", n.wifiSsid != null)
+        if (o == null || o.btDevice != n.btDevice) bt.set(n.btDevice ?: "не подключён", n.btDevice != null)
+
+        if (o?.tripKm != n.tripKm) tripVal.setParts(f1(n.tripKm), "км")
+        if (o?.odometerKm != n.odometerKm) odoVal.setParts(n.odometerKm?.let { grouped(it) } ?: "—", "км")
+
+        if (o?.speedKmh != n.speedKmh) {
+            speed.setParts(n.speedKmh?.toString() ?: "—", "км/ч")
+            updateMotion()
+        }
+        if (o?.rangeKm != n.rangeKm || o?.fuelLiters != n.fuelLiters) {
+            rangeBig.setParts(n.rangeKm?.toString() ?: "—", "км /", f1(n.fuelLiters), "л")
+            fuelBar.progress = (n.fuelLiters ?: 0f) / by.carhome.data.EcarxCarDataSource.FUEL_TANK_L
+        }
+        if (o == null || o.lowFuel != n.lowFuel) {
+            rangeKey.setParts(if (n.lowFuel) "Мало топлива" else "Запас хода")
+            rangeKey.setColor(0, if (n.lowFuel) critColor else dimColor)
+            rangeKey.translationX = if (n.lowFuel) 33 * d else 0f
+            rangeBig.setColor(0, if (n.lowFuel) softCrit else textColor)
+            rangeBadge.visibility = if (n.lowFuel) View.VISIBLE else View.GONE
+            rangeTile.setBackgroundResource(if (n.lowFuel) R.drawable.tile_warn else R.drawable.tile)
+            fuelBar.setFillColor(if (n.lowFuel) critColor else accentColor)
+        }
+
+        gear.gear = n.gear
+        state.set(n.coolantOverheat, n.oilPressureLow, n.gearboxOverheat, n.tireWarning, n.serviceKm, n.anyCarWarning)
+        belts.set(n.beltDriver, n.beltPassenger)
+        autoHold.set(n.autoHold)
+        doors.set(n.openings)
+        if (o?.batteryV != n.batteryV || o?.engineRunning != n.engineRunning) {
+            val low = n.batteryLevel == by.carhome.data.BatteryLevel.LOW
+            battery.set(f1(n.batteryV), "В", low, if (low) critColor else okColor)
+        }
+        // Heaters: take the car's state only when it changes (keeps the optimistic toggle until then).
+        if (o?.steeringHeat != n.steeringHeat) heaters[0].on = n.steeringHeat == true
+        if (o?.nozzleHeat != n.nozzleHeat) heaters[1].on = n.nozzleHeat == true
+        if (o?.windshieldHeat != n.windshieldHeat) heaters[2].on = n.windshieldHeat == true
+
+        climate.set(n.climate)
+        carPlay.set(n.carPlayConnected)
+        androidAuto.set(n.androidAuto)
+    }
+}
+
+/** Corner radius of the system nav bar on this head unit (measured from a screenshot: ~20 px at 160 dpi). */
+private const val CORNER_DP = 20f

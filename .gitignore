@@ -1,0 +1,25 @@
+# Build output
+build/
+.gradle/
+.kotlin/
+.idea/
+*.iml
+local.properties
+*.apk
+*.aab
+*.zip
+
+# Signing keys never go to git
+*.jks
+*.keystore
+keystore.properties
+
+# Drive logs may contain car data; keep them local
+drive-logs/
+*.csv
+
+# Local tooling used while building the project (scripts, font sources, design helpers)
+tools/
+
+# Old design renders (show a real Wi-Fi name); README uses screenshots/hu-*.png
+screenshots/home-*.png
