@@ -2,7 +2,7 @@
 
 [Русская версия](README.ru.md)
 
-A custom home screen for the stock head unit of the **Belgee X50** (Geely Coolray, SX11; sold in Malaysia as the **Proton X50**). It shows live car
+A custom home screen for the stock head unit of the **Belgee X50** (Geely Coolray, SX11, **Proton X50**). It shows live car
 data, switches the heaters, controls the climate and launches Apple CarPlay and Android Auto. Built for my
 own car, free to use and to fork.
 
