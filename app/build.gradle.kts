@@ -1,4 +1,10 @@
-import java.time.LocalDate
+// Date of the last commit (YYYY-MM-DD): the same sources always give the same APK. Shallow CI clones still have HEAD.
+val commitDate: String = runCatching {
+    providers.exec {
+        commandLine("git", "log", "-1", "--format=%cs")
+        isIgnoreExitValue = true
+    }.standardOutput.asText.get().trim()
+}.getOrNull()?.takeIf { it.matches(Regex("""\d{4}-\d{2}-\d{2}""")) } ?: "unknown"
 
 plugins {
     id("com.android.application")
@@ -17,7 +23,7 @@ android {
         versionName = "1.0.0"
         versionCode = 10000
         // Shown in the about card (7 taps on the clock).
-        buildConfigField("String", "BUILD_DATE", "\"${LocalDate.now()}\"")
+        buildConfigField("String", "BUILD_DATE", "\"$commitDate\"")
     }
     buildFeatures { buildConfig = true }
     // APK file name: bg-car-home-1.0.0-release.apk
