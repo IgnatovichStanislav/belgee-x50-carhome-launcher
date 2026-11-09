@@ -368,6 +368,11 @@ class HomeActivity : Activity() {
         super.onStop()
     }
 
+    override fun onDestroy() {
+        dataSource.release()
+        super.onDestroy()
+    }
+
     // Fullscreen: the stock pull-down shade is not available over a third-party home anyway,
     // and our top strip already shows clock, Wi-Fi and BT.
     @Suppress("DEPRECATION")

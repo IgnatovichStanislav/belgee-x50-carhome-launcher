@@ -25,7 +25,7 @@ class EcarxCarDataSource(context: Context) : CarDataSource {
 
     private var listener: ((CarState) -> Unit)? = null
     private var last: CarState? = null
-    private var running = false
+    @Volatile private var running = false
 
     // adapt API objects (resolved after onConnected)
     private var car: Any? = null
@@ -55,6 +55,11 @@ class EcarxCarDataSource(context: Context) : CarDataSource {
         running = false
         worker.removeCallbacks(poll)
         listener = null
+    }
+
+    override fun release() {
+        stop()
+        thread.quitSafely()
     }
 
     private val poll = object : Runnable {
@@ -196,6 +201,8 @@ class EcarxCarDataSource(context: Context) : CarDataSource {
     private var tick = 0
     private var slow: CarState? = null
     private var mid: CarState? = null
+    private var idle: CarState? = null
+    private var idleAt = 0L
 
     /**
      * Tiered polling: every VHAL/adapt-API read costs a binder call plus 3 error log lines in the HAL,
@@ -207,7 +214,14 @@ class EcarxCarDataSource(context: Context) : CarDataSource {
      * consumption, start-stop) are no longer read at all.
      */
     private fun read(): CarState {
-        if (carFunction == null && sensors == null) return CarState(wifiSsid = wifiSsid(), btDevice = btDevice())
+        if (carFunction == null && sensors == null) {
+            // Not connected yet: Wi-Fi/BT are binder calls too, refresh them at 0.5 Hz like the slow tier.
+            val now = android.os.SystemClock.elapsedRealtime()
+            val cached = idle
+            if (cached != null && now - idleAt < IDLE_REFRESH_MS) return cached
+            idleAt = now
+            return CarState(wifiSsid = wifiSsid(), btDevice = btDevice()).also { idle = it }
+        }
         val n = tick++
 
         val s = if (slow == null || n % 10 == 0) readSlow().also { slow = it } else slow!!
@@ -391,6 +405,7 @@ class EcarxCarDataSource(context: Context) : CarDataSource {
     companion object {
         private const val TAG = "CarHomeData"
         private const val POLL_MS = 200L
+        private const val IDLE_REFRESH_MS = 2000L
 
         /** SX11 fuel tank, litres (LunarisApp default setting is 50). */
         const val FUEL_TANK_L = 51f
