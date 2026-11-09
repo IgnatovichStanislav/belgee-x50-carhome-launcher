@@ -97,4 +97,14 @@
     <string name="autohold_armed">готов</string>
     <string name="autohold_holding">держит</string>
     <string name="autohold_off">выкл</string>
+
+    <!-- Screen reader descriptions -->
+    <string name="a11y_clock">%1$s. Долгое нажатие: включить или выключить запись данных</string>
+    <string name="a11y_date">%1$s. Долгое нажатие: сменить тему (авто, день, ночь)</string>
+    <string name="a11y_heat_on">%1$s: подогрев включён</string>
+    <string name="a11y_heat_off">%1$s: подогрев выключен</string>
+    <string name="a11y_link">%1$s: %2$s</string>
+    <string name="a11y_climate">Климат: %1$s °C, обдув %2$d. Открыть климат</string>
+    <string name="a11y_climate_dual">Климат: водитель %1$s °C, пассажир %2$s °C, обдув %3$d. Открыть климат</string>
+    <string name="a11y_climate_off">Климат выключен. Открыть климат</string>
 </resources>

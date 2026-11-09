@@ -162,6 +162,7 @@ internal class StatusCardView(ctx: Context, private val spec: AppSpec, private v
             LinkStatus.CONNECTING, LinkStatus.LOST -> warnC
             else -> inactive
         }
+        contentDescription = context.getString(R.string.a11y_link, name.replace('\n', ' '), context.getString(s.label))
         invalidate()
     }
 
@@ -271,6 +272,11 @@ internal class ClimateCardView(ctx: Context) : View(ctx) {
     fun set(c: ClimateState) {
         if (c == state) return
         state = c
+        contentDescription = when {
+            !c.power -> context.getString(R.string.a11y_climate_off)
+            c.dualZone -> context.getString(R.string.a11y_climate_dual, fmt1(c.tempLeft), fmt1(c.tempRight), c.fanLevel)
+            else -> context.getString(R.string.a11y_climate, fmt1(c.tempLeft), c.fanLevel)
+        }
         measureTemp()
         invalidate()
     }

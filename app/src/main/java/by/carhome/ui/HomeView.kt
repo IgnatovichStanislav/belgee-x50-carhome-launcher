@@ -253,6 +253,8 @@ class HomeView(
     fun setClock(time: String, dateText: String) {
         clock.setParts(time)
         date.setParts(dateText)
+        clock.contentDescription = context.getString(R.string.a11y_clock, time)
+        date.contentDescription = context.getString(R.string.a11y_date, dateText)
     }
 
     /** onPause/onStop: stop every animator (streaks, climate crossfade). */

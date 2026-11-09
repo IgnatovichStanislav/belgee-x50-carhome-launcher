@@ -262,6 +262,7 @@ internal class HeaterButton(ctx: Context, iconRes: Int, private val label: Strin
                 setBackgroundResource(if (v) R.drawable.tile_heat_on else R.drawable.tile_heat)
                 p.color = if (v) warn else dim
                 icon.setTint(if (v) warn else dim)
+                contentDescription = context.getString(if (v) R.string.a11y_heat_on else R.string.a11y_heat_off, label)
                 invalidate()
             }
         }
@@ -271,7 +272,6 @@ internal class HeaterButton(ctx: Context, iconRes: Int, private val label: Strin
         on = false
         setPressRipple(20f)
         isClickable = true
-        contentDescription = label
     }
 
     override fun onDraw(canvas: Canvas) {
