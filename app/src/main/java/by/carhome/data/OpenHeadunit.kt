@@ -85,10 +85,10 @@ object OpenHeadunit {
         ctx.sendOrderedBroadcast(i, null, object : BroadcastReceiver() {
             override fun onReceive(c: Context, r: Intent) {
                 val json = resultData ?: return
-                val up = Regex("\"connected\"\\s*:\\s*(true|false)").find(json)?.groupValues?.get(1) ?: return
+                val up = Decode.ohuConnected(json) ?: return
                 // Keep a finer state we already have ("connecting"/"projecting"); only correct a stale one.
-                if (up == "true" && !connected) state = "connected"
-                if (up == "false" && connected) state = "disconnected"
+                if (up && !connected) state = "connected"
+                if (!up && connected) state = "disconnected"
             }
         }, null, Activity.RESULT_OK, null, Bundle())
     }

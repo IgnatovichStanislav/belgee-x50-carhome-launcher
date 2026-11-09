@@ -187,13 +187,13 @@ class EcarxCarDataSource(context: Context) : CarDataSource {
     private fun trip(odo: Float?): Float? {
         odo ?: return null
         if (tripStart == null) {
-            val boot = (System.currentTimeMillis() - android.os.SystemClock.elapsedRealtime()) / 60_000
-            if (prefs.getLong("boot", -1) !in boot - 1..boot + 1) {
+            val boot = Decode.bootMinute(System.currentTimeMillis(), android.os.SystemClock.elapsedRealtime())
+            if (!Decode.sameBoot(prefs.getLong("boot", -1), boot)) {
                 prefs.edit().putLong("boot", boot).putFloat("odo", odo).apply()
             }
             tripStart = prefs.getFloat("odo", odo)
         }
-        return (odo - tripStart!!).coerceAtLeast(0f)
+        return Decode.tripKm(odo, tripStart!!)
     }
 
     // ---------- state assembly ----------
@@ -249,18 +249,13 @@ class EcarxCarDataSource(context: Context) : CarDataSource {
         steeringHeat = heatOn(fnSteering),
         nozzleHeat = heatOn(fnNozzle),
         windshieldHeat = heatOn(fnWindshield),
-        // Raw INFO_ID_AUTO_HOLD_SWITCH: 0 off, 2 armed (seen at 80+ km/h), 1 holding (stopped).
-        // CarState uses 0 off / 1 armed / 2 holding, so swap 1 and 2.
-        autoHold = vhalBytes(P_AUTO_HOLD)?.takeIf { it.size == 1 }?.let {
-            when (it[0].toInt() and 0xff) { 1 -> 2; 2 -> 1; else -> 0 }
-        },
+        autoHold = Decode.autoHold(vhalBytes(P_AUTO_HOLD)),
         openings = openings(),
     )
 
     /** 0.5 Hz tier. */
     private fun readSlow(): CarState {
-        val fuelL = vhalBytes(P_REMAINING_OIL)?.takeIf { it.size == 1 && it[0] >= 0 }
-            ?.let { it[0] / 100f * FUEL_TANK_L }
+        val fuelL = Decode.fuelLiters(vhalBytes(P_REMAINING_OIL), FUEL_TANK_L)
         val battery = vhalBytes(P_BATTERY_VOL)?.takeIf { it.isNotEmpty() }?.let { it.u() / 10f }
         val odo = sensor(S_ODOMETER)
         val state = CarState(
