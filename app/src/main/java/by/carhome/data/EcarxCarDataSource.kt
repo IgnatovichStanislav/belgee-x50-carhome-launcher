@@ -402,8 +402,8 @@ class EcarxCarDataSource(context: Context) : CarDataSource {
         private const val POLL_MS = 200L
         private const val IDLE_REFRESH_MS = 2000L
 
-        /** SX11 fuel tank, litres (owner checked: 46.5 L fit into an empty tank). */
-        const val FUEL_TANK_L = 45f
+        /** SX11 fuel tank, litres: 46.5 L fit into an empty tank (owner fill-up). */
+        const val FUEL_TANK_L = 46.5f
 
         // ISensor (com.ecarx.xui.adaptapi.car.sensor.ISensor)
         const val S_CAR_SPEED = 1048832          // m/s

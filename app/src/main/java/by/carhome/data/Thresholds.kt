@@ -5,7 +5,7 @@ object Thresholds {
     const val TIRE_LOW_BAR = 1.9f
     const val TIRE_HIGH_BAR = 3.2f
     const val TIRE_TEMP_HIGH_C = 90
-    const val FUEL_LOW_LITERS = 6.8f // ~15% of 45 L: the cluster lamp was on at 14%
+    const val FUEL_LOW_LITERS = 7.0f // ~15% of 46.5 L: the cluster lamp was on at 14%
     const val RANGE_LOW_KM = 55
     const val COOLANT_HIGH_C = 105
     const val OIL_HIGH_C = 140
