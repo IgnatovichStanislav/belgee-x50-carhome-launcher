@@ -13,6 +13,7 @@ import android.os.SystemClock
 import android.util.Log
 import java.io.BufferedWriter
 import java.io.File
+import java.io.IOException
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 import java.text.SimpleDateFormat
@@ -52,6 +53,7 @@ class RecorderService : Service() {
             0x2870018f, 0x28700190, 0x28700191, 0x28700192, // GPS GSA/GGA/elevation/info
         )
         private const val HVAC_EVERY = 2 // HVAC polled every 2nd sensor poll (1 s)
+        private const val MAX_LOG_BYTES = 200L * 1024 * 1024
 
         @Volatile var running = false
             private set
@@ -116,21 +118,52 @@ class RecorderService : Service() {
 
     private fun openFile() {
         val dir = getExternalFilesDir(null) ?: filesDir
+        pruneOldLogs(dir)
         val name = "drive-" + SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date()) + ".csv"
-        file = File(dir, name)
-        out = file!!.bufferedWriter()
-        t0 = SystemClock.elapsedRealtime()
-        out!!.write("ms,src,key,value\n")
+        try {
+            val f = File(dir, name)
+            file = f
+            out = f.bufferedWriter()
+            t0 = SystemClock.elapsedRealtime()
+            out!!.write("ms,src,key,value\n")
+        } catch (e: IOException) {
+            fail(e)
+            return
+        }
         write("I", "start", Date().toString())
         Log.i(TAG, "recording to ${file!!.absolutePath}")
         h.postDelayed(flusher, 3000)
     }
 
+    /** Deletes the oldest drive logs while the folder holds more than [MAX_LOG_BYTES]. */
+    private fun pruneOldLogs(dir: File) {
+        val logs = dir.listFiles { f -> f.isFile && f.name.startsWith("drive-") && f.name.endsWith(".csv") }
+            ?.sortedBy { it.name } ?: return // names carry the start time, so name order is age order
+        var total = logs.sumOf { it.length() }
+        for (f in logs) {
+            if (total <= MAX_LOG_BYTES) break
+            val size = f.length()
+            if (f.delete()) total -= size
+        }
+    }
+
     private val flusher = object : Runnable {
         override fun run() {
-            runCatching { out?.flush() }
+            if (out == null) return
+            try { out?.flush() } catch (e: IOException) { fail(e); return }
             h.postDelayed(this, 3000)
         }
+    }
+
+    /**
+     * Storage full or the file went away: an uncaught IOException here would kill the whole launcher
+     * process, so drop the file and stop the service instead.
+     */
+    private fun fail(e: IOException) {
+        Log.e(TAG, "write failed, recorder stopped: ${file?.absolutePath}", e)
+        runCatching { out?.close() }
+        out = null
+        stopSelf()
     }
 
     /** Must run on the recorder thread. Writes only when the value changed. */
@@ -139,8 +172,13 @@ class RecorderService : Service() {
         if (last[k] == value) return
         last[k] = value
         val w = out ?: return
-        w.write((SystemClock.elapsedRealtime() - t0).toString())
-        w.write(","); w.write(src); w.write(","); w.write(key); w.write(","); w.write(value.replace(',', ';')); w.write("\n")
+        try {
+            w.write((SystemClock.elapsedRealtime() - t0).toString())
+            w.write(","); w.write(src); w.write(","); w.write(key); w.write(","); w.write(value.replace(',', ';')); w.write("\n")
+        } catch (e: IOException) {
+            fail(e)
+            return
+        }
         lines++
     }
 

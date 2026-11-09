@@ -76,6 +76,8 @@ Off by default. It exists to find and decode new car signals.
   out in code (`PRIVATE_PROPS`).
 - **Where it goes:** `/sdcard/Android/data/by.carhome/files/drive-YYYYMMDD-HHMMSS.csv`, a new file for every
   ignition cycle. Nowhere else: the app has no internet permission. Only you can pull the files, over ADB.
+- **Storage limit:** the folder is kept under 200 MB; the oldest drive files are deleted first. If the
+  storage fills up anyway, recording stops and the home screen keeps working.
 - **Deleting:** delete the files in that folder or uninstall the app.
 
 ## Not tested yet
