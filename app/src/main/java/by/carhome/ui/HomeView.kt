@@ -99,6 +99,15 @@ class HomeView(
     private var last: CarState? = null
     private var paused = false
 
+    private fun heatOf(s: CarState, i: Int): Boolean? = when (i) {
+        0 -> s.steeringHeat
+        1 -> s.nozzleHeat
+        else -> s.windshieldHeat
+    }
+
+    /** No answer from the car after a tap (command rejected): show the car's real state again. */
+    private val heatRevert = Array(3) { i -> Runnable { heaters[i].on = last?.let { heatOf(it, i) } == true } }
+
     private fun valueRun(sizeDp: Float, tf: android.graphics.Typeface, color: Int, unitDp: Float) =
         RunView(context, paints(context.textPaint(sizeDp, tf, color), context.textPaint(unitDp, Fonts.regular, R.color.text_dim)),
             gapL = 3 * d, gapR = 8 * d)
@@ -195,6 +204,8 @@ class HomeView(
         for ((i, b) in heaters.withIndex()) {
             b.setOnClickListener {
                 b.on = !b.on
+                removeCallbacks(heatRevert[i])
+                postDelayed(heatRevert[i], HEAT_CONFIRM_MS)
                 onHeatClick?.invoke(kinds[i], b.on)
             }
             heat.addView(b, LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1f).apply { if (i > 0) leftMargin = px(10f) })
@@ -305,10 +316,15 @@ class HomeView(
             val low = n.batteryLevel == by.carhome.data.BatteryLevel.LOW
             battery.set(f1(n.batteryV), "В", low, if (low) critColor else okColor)
         }
-        // Heaters: take the car's state only when it changes (keeps the optimistic toggle until then).
-        if (o?.steeringHeat != n.steeringHeat) heaters[0].on = n.steeringHeat == true
-        if (o?.nozzleHeat != n.nozzleHeat) heaters[1].on = n.nozzleHeat == true
-        if (o?.windshieldHeat != n.windshieldHeat) heaters[2].on = n.windshieldHeat == true
+        // Heaters: take the car's state only when it changes (keeps the optimistic toggle until then);
+        // a change is the car's answer, so the pending revert is dropped.
+        for (i in heaters.indices) {
+            val v = heatOf(n, i)
+            if (o == null || heatOf(o, i) != v) {
+                removeCallbacks(heatRevert[i])
+                heaters[i].on = v == true
+            }
+        }
 
         climate.set(n.climate)
         carPlay.set(n.carPlayConnected)
@@ -318,3 +334,6 @@ class HomeView(
 
 /** Corner radius of the system nav bar on this head unit (measured from a screenshot: ~20 px at 160 dpi). */
 private const val CORNER_DP = 20f
+
+/** How long a tapped heater button waits for the car to confirm before it flips back. */
+private const val HEAT_CONFIRM_MS = 3000L
