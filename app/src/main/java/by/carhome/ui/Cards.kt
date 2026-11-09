@@ -6,6 +6,7 @@ import android.graphics.ColorFilter
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.PixelFormat
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.drawable.Drawable
@@ -259,6 +260,8 @@ internal class ClimateCardView(ctx: Context) : View(ctx) {
     private val ctBase = ct.textSize
     private val ctSmallBase = ctSmall.textSize
     private val dualBase = dualP.textSize
+    private val digitBox = Rect()
+    private val degBox = Rect()
 
     init {
         setBackgroundResource(R.drawable.tile)
@@ -363,7 +366,10 @@ internal class ClimateCardView(ctx: Context) : View(ctx) {
             val vw = ct.tabularWidth(t1) + ctSmall.measureText("°")
             val tx = x0 + (tempW - vw) / 2f
             canvas.drawTabular(t1, tx, 75f * d, ct)
-            canvas.drawText("°", tx + ct.tabularWidth(t1), 75f * d, ctSmall)
+            // Small «°» on the baseline reads as a dot, so its top is aligned with the top of the digits.
+            ct.getTextBounds("0", 0, 1, digitBox)
+            ctSmall.getTextBounds("°", 0, 1, degBox)
+            canvas.drawText("°", tx + ct.tabularWidth(t1), 75f * d + digitBox.top - degBox.top, ctSmall)
         }
         val cx = x0 + tempW + 22 * d
         val s = (34 * d).toInt()
