@@ -25,7 +25,7 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.CarHome">
         <!-- Authorship metadata (readable with `aapt dump xmltree` or PackageManager.getApplicationInfo). -->
-        <meta-data android:name="by.carhome.author" android:value="Stanislav Ihnatovich (Станислав Игнатович)" />
+        <meta-data android:name="by.carhome.author" android:value="Stanislau Ihnatovich (Станислав Игнатович)" />
         <meta-data android:name="by.carhome.homepage" android:value="https://github.com/IgnatovichStanislav" />
         <meta-data android:name="by.carhome.linkedin" android:value="https://www.linkedin.com/in/stanislau-ihnatovich-link" />
         <activity
