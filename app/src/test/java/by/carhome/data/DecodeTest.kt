@@ -27,15 +27,15 @@ class DecodeTest {
     }
 
     @Test fun fuelPercentToLitres() {
-        assertEquals(51f, Decode.fuelLiters(b(100), 51f)!!, 1e-4f)
-        assertEquals(25.5f, Decode.fuelLiters(b(50), 51f)!!, 1e-4f)
-        assertEquals(0f, Decode.fuelLiters(b(0), 51f)!!, 1e-4f)
+        assertEquals(45f, Decode.fuelLiters(b(100), 45f)!!, 1e-4f)
+        assertEquals(22.5f, Decode.fuelLiters(b(50), 45f)!!, 1e-4f)
+        assertEquals(0f, Decode.fuelLiters(b(0), 45f)!!, 1e-4f)
     }
 
     @Test fun fuelInvalidIsNull() {
-        assertNull(Decode.fuelLiters(b(0xff), 51f)) // -1 as a signed byte
-        assertNull(Decode.fuelLiters(b(), 51f))
-        assertNull(Decode.fuelLiters(null, 51f))
+        assertNull(Decode.fuelLiters(b(0xff), 45f)) // -1 as a signed byte
+        assertNull(Decode.fuelLiters(b(), 45f))
+        assertNull(Decode.fuelLiters(null, 45f))
     }
 
     @Test fun tripFromOdometer() {

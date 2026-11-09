@@ -9,7 +9,7 @@ import kotlin.math.sin
 object FakeStates {
     fun normal() = CarState(
         wifiSsid = "Home-WiFi", btDevice = "iPhone",
-        rangeKm = 450, fuelLiters = 45.4f, tripKm = 3.8f, odometerKm = 25012, serviceKm = 5285,
+        rangeKm = 450, fuelLiters = 40.1f, tripKm = 3.8f, odometerKm = 25012, serviceKm = 5285,
         speedKmh = 42,
         gear = Gear.D,
         batteryV = 12.4f,
@@ -28,7 +28,7 @@ object FakeStates {
     /** Driver door open, AutoHold holding, steering and windshield heat on, low fuel, coolant warning. */
     fun warning() = normal().copy(
         speedKmh = 0,
-        rangeKm = 52, fuelLiters = 7.4f, tripKm = 12.4f,
+        rangeKm = 52, fuelLiters = 6.3f, tripKm = 12.4f,
         coolantOverheat = true,
         beltDriver = false, beltPassenger = true,
         btDevice = null,
