@@ -112,7 +112,7 @@ internal class AppTileView(ctx: Context, spec: AppSpec, private val icon: Drawab
         setBackgroundResource(R.drawable.tile)
         setPressRipple(22f)
         isClickable = true
-        contentDescription = spec.label.replace('\n', ' ') // label is not drawn: icon only
+        contentDescription = ctx.getString(spec.label).replace('\n', ' ') // label is not drawn: icon only
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -130,6 +130,7 @@ internal class AppTileView(ctx: Context, spec: AppSpec, private val icon: Drawab
 internal class StatusCardView(ctx: Context, private val spec: AppSpec, private val on: Drawable, private val off: Drawable) : View(ctx) {
     private val d = ctx.dpf(1f)
     private val title = ctx.textPaint(22f, Fonts.regular, R.color.text)
+    private val name = ctx.getString(spec.label)
     private val status = ctx.textPaint(17f, Fonts.regular, R.color.text_dim)
     private val dot = Paint(Paint.ANTI_ALIAS_FLAG)
     private val dim = ctx.getColor(R.color.text_dim)
@@ -175,17 +176,17 @@ internal class StatusCardView(ctx: Context, private val spec: AppSpec, private v
         val tx = 89 * d
         // Narrow cards (270 px) with the wide ECARX font: shrink the title to the space left of the edge.
         val avail = width - tx - 14 * d
-        val tw = title.measureText(spec.label)
+        val tw = title.measureText(name)
         if (tw > avail && avail > 0) {
             canvas.save()
             canvas.scale(avail / tw, avail / tw, tx, 51.8f * d)
-            canvas.drawText(spec.label, tx, 51.8f * d, title)
+            canvas.drawText(name, tx, 51.8f * d, title)
             canvas.restore()
         } else {
-            canvas.drawText(spec.label, tx, 51.8f * d, title)
+            canvas.drawText(name, tx, 51.8f * d, title)
         }
         canvas.drawCircle(tx + 5 * d, 72.6f * d, 5 * d, dot)
-        canvas.drawText((link ?: LinkStatus.DISCONNECTED).label, tx + 18 * d, 79.6f * d, status)
+        canvas.drawText(context.getString((link ?: LinkStatus.DISCONNECTED).label), tx + 18 * d, 79.6f * d, status)
         canvas.restore()
     }
 }
@@ -202,6 +203,9 @@ internal class ClimateCardView(ctx: Context) : View(ctx) {
     private val ctSmall = ctx.textPaint(28f, Fonts.regular, R.color.text_dim)
     private val dualP = ctx.textPaint(38f, Fonts.light, R.color.text)
     private val em = ctx.textPaint(16f, Fonts.medium, R.color.text_dim)
+    private val keyDriver = ctx.getString(R.string.climate_driver)
+    private val keyPassenger = ctx.getString(R.string.climate_passenger)
+    private val offText = ctx.getString(R.string.climate_off)
     private val chipP = ctx.textPaint(18f, Fonts.medium, R.color.chip_text_off)
     private val chipFill = Paint(Paint.ANTI_ALIAS_FLAG)
     private val chipLine = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = d }
@@ -246,7 +250,7 @@ internal class ClimateCardView(ctx: Context) : View(ctx) {
     }
     private val rect = RectF()
     private val clip = android.graphics.Path()
-    private val chips = arrayOf("A/C", "AUTO", "РЕЦ")
+    private val chips = arrayOf("A/C", "AUTO", ctx.getString(R.string.climate_recirc))
     private var state: ClimateState? = null
     private var tempW = 0f
     private var t1 = ""
@@ -298,7 +302,7 @@ internal class ClimateCardView(ctx: Context) : View(ctx) {
         }
     }
 
-    private fun keyW() = maxOf(em.measureText("В"), em.measureText("П")) + 6 * d
+    private fun keyW() = maxOf(em.measureText(keyDriver), em.measureText(keyPassenger)) + 6 * d
 
     private fun slotWidth(dual: Boolean): Float {
         var w = 0f
@@ -343,10 +347,10 @@ internal class ClimateCardView(ctx: Context) : View(ctx) {
         val x0 = (width - (tempW + 22 * d + infoW)) / 2f
         if (c.dualZone) {
             val right = x0 + tempW
-            canvas.drawText("В", x0, 44f * d, em)
+            canvas.drawText(keyDriver, x0, 44f * d, em)
             val mid = (x0 + keyW() + right) / 2f
             canvas.drawTabular(t1, mid - dualP.tabularWidth(t1) / 2f, 44f * d, dualP)
-            canvas.drawText("П", x0, 88f * d, em)
+            canvas.drawText(keyPassenger, x0, 88f * d, em)
             canvas.drawTabular(t2, mid - dualP.tabularWidth(t2) / 2f, 88f * d, dualP)
         } else {
             // All "dd.d" values have the same tabular width, so the number is centred in the slot and never moves.
@@ -364,7 +368,7 @@ internal class ClimateCardView(ctx: Context) : View(ctx) {
         fan.draw(canvas)
         val bx = fx + s + 12 * d
         if (off) {
-            canvas.drawText("выкл", bx, offP.baselineForCenter(34 * d), offP)
+            canvas.drawText(offText, bx, offP.baselineForCenter(34 * d), offP)
         } else {
             for (i in 0 until 7) {
                 val h = (12 + 4 * i) * d

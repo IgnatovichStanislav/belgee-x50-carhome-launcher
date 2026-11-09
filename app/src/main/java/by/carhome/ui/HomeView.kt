@@ -78,11 +78,11 @@ class HomeView(
     private val belts = BeltsView(ctx)
     private val autoHold = AutoHoldView(ctx)
     private val doors = DoorBanner(ctx)
-    private val battery = StatTileView(ctx, listOf("Аккумулятор"))
+    private val battery = StatTileView(ctx, listOf(ctx.getString(R.string.battery)))
     private val heaters = arrayOf(
-        HeaterButton(ctx, R.drawable.ic_heat_wheel, "Руль"),
-        HeaterButton(ctx, R.drawable.ic_heat_nozzle, "Форсунки"),
-        HeaterButton(ctx, R.drawable.ic_heat_glass, "Лобовое"),
+        HeaterButton(ctx, R.drawable.ic_heat_wheel, ctx.getString(R.string.heat_wheel)),
+        HeaterButton(ctx, R.drawable.ic_heat_nozzle, ctx.getString(R.string.heat_nozzle)),
+        HeaterButton(ctx, R.drawable.ic_heat_glass, ctx.getString(R.string.heat_glass)),
     )
     private val streaks = StreakLayer(ctx, floatArrayOf(300f, 340f, 380f), longArrayOf(0, 500, 1100))
     private val climate = ClimateCardView(ctx)
@@ -95,6 +95,10 @@ class HomeView(
     private val dimColor = ctx.getColor(R.color.text_dim)
     private val okColor = ctx.getColor(R.color.ok)
     private val accentColor = ctx.getColor(R.color.accent)
+
+    private val km = ctx.getString(R.string.unit_km)
+    private val rangeText = ctx.getString(R.string.range)
+    private val fuelLowText = ctx.getString(R.string.fuel_low)
 
     private var last: CarState? = null
     private var paused = false
@@ -180,16 +184,16 @@ class HomeView(
 
         // trip / odometer
         val trg = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
-        trg.addView(group(keyRun("Поездка"), 20f, tripVal, vTop(tripVal), 71f, false), lp(71f))
-        trg.addView(group(keyRun("Пробег"), 20f, odoVal, vTop(odoVal), 71f, true, false), lp(71f))
+        trg.addView(group(keyRun(ctx.getString(R.string.trip)), 20f, tripVal, vTop(tripVal), 71f, false), lp(71f))
+        trg.addView(group(keyRun(ctx.getString(R.string.odometer)), 20f, odoVal, vTop(odoVal), 71f, true, false), lp(71f))
         addView(trg, LayoutParams(WRAP, px(80f)).apply { gravity = Gravity.END or Gravity.TOP; rightMargin = px(20f); topMargin = px(16f) })
 
         // left tiles
         tile(16f, 115f, 402f, 238f)
-        putRun(RunView(ctx, paints(ctx.textPaint(20f, Fonts.regular, R.color.text_dim))).apply { setParts("Скорость") }, 41f, 149f)
+        putRun(RunView(ctx, paints(ctx.textPaint(20f, Fonts.regular, R.color.text_dim))).apply { setParts(ctx.getString(R.string.speed)) }, 41f, 149f)
         putRun(speed, 41f, 290f)
         put(rangeTile, 16f, 368f, px(402f), px(192f))
-        putRun(rangeKey.apply { setParts("Запас хода") }, 41f, 402f)
+        putRun(rangeKey.apply { setParts(rangeText) }, 41f, 402f)
         put(rangeBadge, 41f, 385f)
         rangeBadge.visibility = View.GONE
         putRun(rangeBig, 41f, 466f)
@@ -230,8 +234,8 @@ class HomeView(
         for ((i, spec) in Apps.list.withIndex()) {
             val (w, v) = when (spec.kind) {
                 TileKind.PLAIN -> 169f to AppTileView(ctx, spec, iconLoader(spec)
-                    ?: LetterIconDrawable(ctx, spec.letter, spec.color)) as View
-                TileKind.ALL_APPS -> 350f to AppTileView(ctx, spec, AllAppsIconDrawable(ctx), spec.label) as View
+                    ?: LetterIconDrawable(ctx, ctx.getString(spec.letter), spec.color)) as View
+                TileKind.ALL_APPS -> 350f to AppTileView(ctx, spec, AllAppsIconDrawable(ctx), ctx.getString(spec.label)) as View
                 TileKind.CLIMATE -> 440f to climate
                 TileKind.CARPLAY -> 270f to StatusCardView(ctx, spec, ctx.getDrawable(R.drawable.car_play_icon)!!,
                     ctx.getDrawable(R.drawable.car_play_dis_icon)!!).also { cp = it }
@@ -283,22 +287,22 @@ class HomeView(
     fun render(n: CarState) {
         val o = last
         last = n
-        if (o == null || o.wifiSsid != n.wifiSsid) wifi.set(n.wifiSsid ?: "нет сети", n.wifiSsid != null)
-        if (o == null || o.btDevice != n.btDevice) bt.set(n.btDevice ?: "не подключён", n.btDevice != null)
+        if (o == null || o.wifiSsid != n.wifiSsid) wifi.set(n.wifiSsid ?: context.getString(R.string.no_wifi), n.wifiSsid != null)
+        if (o == null || o.btDevice != n.btDevice) bt.set(n.btDevice ?: context.getString(R.string.no_bt), n.btDevice != null)
 
-        if (o?.tripKm != n.tripKm) tripVal.setParts(f1(n.tripKm), "км")
-        if (o?.odometerKm != n.odometerKm) odoVal.setParts(n.odometerKm?.let { grouped(it) } ?: "—", "км")
+        if (o?.tripKm != n.tripKm) tripVal.setParts(f1(n.tripKm), km)
+        if (o?.odometerKm != n.odometerKm) odoVal.setParts(n.odometerKm?.let { grouped(it) } ?: "—", km)
 
         if (o?.speedKmh != n.speedKmh) {
-            speed.setParts(n.speedKmh?.toString() ?: "—", "км/ч")
+            speed.setParts(n.speedKmh?.toString() ?: "—", context.getString(R.string.unit_kmh))
             updateMotion()
         }
         if (o?.rangeKm != n.rangeKm || o?.fuelLiters != n.fuelLiters) {
-            rangeBig.setParts(n.rangeKm?.toString() ?: "—", "км /", f1(n.fuelLiters), "л")
+            rangeBig.setParts(n.rangeKm?.toString() ?: "—", context.getString(R.string.unit_km_slash), f1(n.fuelLiters), context.getString(R.string.unit_l))
             fuelBar.progress = (n.fuelLiters ?: 0f) / by.carhome.data.EcarxCarDataSource.FUEL_TANK_L
         }
         if (o == null || o.lowFuel != n.lowFuel) {
-            rangeKey.setParts(if (n.lowFuel) "Мало топлива" else "Запас хода")
+            rangeKey.setParts(if (n.lowFuel) fuelLowText else rangeText)
             rangeKey.setColor(0, if (n.lowFuel) critColor else dimColor)
             rangeKey.translationX = if (n.lowFuel) 33 * d else 0f
             rangeBig.setColor(0, if (n.lowFuel) softCrit else textColor)
@@ -314,7 +318,7 @@ class HomeView(
         doors.set(n.openings)
         if (o?.batteryV != n.batteryV || o?.engineRunning != n.engineRunning) {
             val low = n.batteryLevel == by.carhome.data.BatteryLevel.LOW
-            battery.set(f1(n.batteryV), "В", low, if (low) critColor else okColor)
+            battery.set(f1(n.batteryV), context.getString(R.string.unit_v), low, if (low) critColor else okColor)
         }
         // Heaters: take the car's state only when it changes (keeps the optimistic toggle until then);
         // a change is the car's answer, so the pending revert is dropped.

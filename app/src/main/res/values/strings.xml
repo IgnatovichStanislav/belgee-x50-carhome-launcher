@@ -1,7 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">BG Car Home</string>
+    <!-- Locale for dates; matches the language of this resource set. -->
+    <string name="locale_tag" translatable="false">ru</string>
+    <string name="date_format" translatable="false">EEEE, d MMMM</string>
+
     <!-- Easter egg: 7 quick taps on the clock. -->
     <string name="about_author">BG Car Home · сделал Станислав Игнатович\nдля себя и для всех — бесплатно и с открытым кодом</string>
     <string name="about_version">версия %1$s · сборка %2$s</string>
+
+    <!-- Bottom row -->
+    <string name="app_navigator">Навигатор</string>
+    <string name="app_navigator_letter">Н</string>
+    <string name="app_music">Яндекс\nМузыка</string>
+    <string name="app_music_letter">М</string>
+    <string name="app_carplay" translatable="false">Apple CarPlay</string>
+    <string name="app_climate">Климат</string>
+    <string name="app_android_auto" translatable="false">Android Auto</string>
+    <string name="app_all">Все приложения</string>
+
+    <!-- Toasts -->
+    <string name="theme_auto">Тема: авто (по солнцу)</string>
+    <string name="theme_day">Тема: день</string>
+    <string name="theme_night">Тема: ночь</string>
+    <string name="rec_on">Запись данных включена</string>
+    <string name="rec_off">Запись данных остановлена</string>
+    <string name="rec_badge">● Запись данных</string>
+    <string name="all_apps_unavailable">Список приложений недоступен</string>
+    <string name="headunit_missing">Не установлен Open Headunit (приёмник Android Auto)</string>
+    <string name="app_not_found">Не найдено: %1$s</string>
+
+    <!-- Recorder notification -->
+    <string name="rec_channel">Запись данных</string>
+    <string name="rec_title">CarHome: запись данных автомобиля</string>
+    <string name="rec_text">Долгое нажатие на часы — остановить</string>
+
+    <!-- Phone projection status -->
+    <string name="link_not_installed">Не установлен</string>
+    <string name="link_disconnected">Не подключён</string>
+    <string name="link_connecting">Подключение…</string>
+    <string name="link_connected">Подключён</string>
+    <string name="link_lost">Нет связи</string>
+
+    <!-- Openings: list label and the single-opening banner -->
+    <string name="opening_driver">дверь водителя</string>
+    <string name="opening_passenger">дверь пассажира</string>
+    <string name="opening_rear_left">задняя левая дверь</string>
+    <string name="opening_rear_right">задняя правая дверь</string>
+    <string name="opening_trunk">багажник</string>
+    <string name="opening_hood">капот</string>
+    <string name="opening_driver_one">Открыта дверь водителя</string>
+    <string name="opening_passenger_one">Открыта дверь пассажира</string>
+    <string name="opening_rear_left_one">Открыта задняя левая дверь</string>
+    <string name="opening_rear_right_one">Открыта задняя правая дверь</string>
+    <string name="opening_trunk_one">Открыт багажник</string>
+    <string name="opening_hood_one">Открыт капот</string>
+    <string name="openings_many">Открыто: %1$s</string>
+
+    <!-- Home screen labels -->
+    <string name="battery">Аккумулятор</string>
+    <string name="heat_wheel">Руль</string>
+    <string name="heat_nozzle">Форсунки</string>
+    <string name="heat_glass">Лобовое</string>
+    <string name="trip">Поездка</string>
+    <string name="odometer">Пробег</string>
+    <string name="speed">Скорость</string>
+    <string name="range">Запас хода</string>
+    <string name="fuel_low">Мало топлива</string>
+    <string name="no_wifi">нет сети</string>
+    <string name="no_bt">не подключён</string>
+    <string name="unit_km">км</string>
+    <string name="unit_kmh">км/ч</string>
+    <string name="unit_km_slash">км /</string>
+    <string name="unit_l">л</string>
+    <string name="unit_v">В</string>
+
+    <!-- Climate card -->
+    <string name="climate_recirc">РЕЦ</string>
+    <string name="climate_driver">В</string>
+    <string name="climate_passenger">П</string>
+    <string name="climate_off">выкл</string>
+
+    <!-- Car status tile -->
+    <string name="state_title">Состояние авто</string>
+    <string name="state_coolant">ОЖ</string>
+    <string name="state_oil">Масло</string>
+    <string name="state_gearbox">КПП</string>
+    <string name="state_tires">Шины</string>
+    <string name="state_overheat">Перегрев</string>
+    <string name="state_low_pressure">Низкое давление</string>
+    <string name="state_fault">Неисправность</string>
+    <string name="state_ok">Норма</string>
+    <string name="state_no_data">нет данных</string>
+    <string name="service">До ТО</string>
+    <string name="belts">Ремни</string>
+    <string name="autohold_armed">готов</string>
+    <string name="autohold_holding">держит</string>
+    <string name="autohold_off">выкл</string>
 </resources>

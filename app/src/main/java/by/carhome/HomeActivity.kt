@@ -23,14 +23,17 @@ class HomeActivity : Activity() {
     private lateinit var home: HomeView
     private lateinit var host: android.widget.FrameLayout
     private lateinit var recBadge: android.widget.TextView
-    private val timeFmt = SimpleDateFormat("HH:mm", Locale("ru"))
-    private val dateFmt = SimpleDateFormat("EEEE, d MMMM", Locale("ru"))
+    private val timeFmt = SimpleDateFormat("HH:mm", Locale.US)
+    // Day and month names in the language of the strings, not the system locale.
+    private val dateFmt by lazy {
+        SimpleDateFormat(getString(R.string.date_format), Locale.forLanguageTag(getString(R.string.locale_tag)))
+    }
     private var timeText = ""
     private var dateText = ""
 
     // Day/night: auto follows the sun (the car's DAY_NIGHT signal is stuck at NIGHT on this X50),
     // or a manual choice; long-press the date cycles Auto → Day → Night. 5 s of stability before switching.
-    private enum class ThemeMode(val label: String) { AUTO("Тема: авто (по солнцу)"), DAY("Тема: день"), NIGHT("Тема: ночь") }
+    private enum class ThemeMode(val label: Int) { AUTO(R.string.theme_auto), DAY(R.string.theme_day), NIGHT(R.string.theme_night) }
     private val uiPrefs by lazy { getSharedPreferences("ui", Context.MODE_PRIVATE) }
     private var themeMode: ThemeMode
         get() = runCatching { ThemeMode.valueOf(uiPrefs.getString("theme", "AUTO")!!) }.getOrDefault(ThemeMode.AUTO)
@@ -72,7 +75,7 @@ class HomeActivity : Activity() {
         h.onClockLongPress = {
             val on = by.carhome.rec.RecorderService.toggle(this)
             updateRecBadge(on)
-            Toast.makeText(this, if (on) "Запись данных включена" else "Запись данных остановлена", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, if (on) R.string.rec_on else R.string.rec_off, Toast.LENGTH_SHORT).show()
         }
         h.onClockTap = ::onClockTap
         h.onDateLongPress = ::cycleThemeMode
@@ -181,7 +184,7 @@ class HomeActivity : Activity() {
     private fun buildBadge(night: Boolean): android.widget.TextView {
         val ctx = themeContext(this, night)
         return android.widget.TextView(ctx).apply {
-            text = "● Запись данных"
+            text = ctx.getString(R.string.rec_badge)
             typeface = by.carhome.ui.Fonts.regular
             textSize = 18f
             setTextColor(ctx.getColor(R.color.crit))
@@ -424,7 +427,7 @@ class HomeActivity : Activity() {
         try {
             startActivity(all)
         } catch (e: Exception) {
-            Toast.makeText(this, "Список приложений недоступен", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.all_apps_unavailable, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -435,13 +438,13 @@ class HomeActivity : Activity() {
         }
         if (spec.kind == TileKind.ANDROID_AUTO) {
             if (!by.carhome.data.OpenHeadunit.open(this)) {
-                Toast.makeText(this, "Не установлен Open Headunit (приёмник Android Auto)", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, R.string.headunit_missing, Toast.LENGTH_LONG).show()
             }
             return
         }
         val i = packageManager.getLaunchIntentForPackage(spec.pkg)
         if (i == null) {
-            Toast.makeText(this, "Не найдено: ${spec.label.replace('\n', ' ')}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.app_not_found, getString(spec.label).replace('\n', ' ')), Toast.LENGTH_SHORT).show()
         } else {
             startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         }

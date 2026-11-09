@@ -11,6 +11,7 @@ import android.os.HandlerThread
 import android.os.IBinder
 import android.os.SystemClock
 import android.util.Log
+import by.carhome.R
 import java.io.BufferedWriter
 import java.io.File
 import java.io.IOException
@@ -368,11 +369,11 @@ class RecorderService : Service() {
 
     private fun notification(): Notification {
         val nm = getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(NotificationChannel(CHANNEL, "Запись данных", NotificationManager.IMPORTANCE_LOW))
+        nm.createNotificationChannel(NotificationChannel(CHANNEL, getString(R.string.rec_channel), NotificationManager.IMPORTANCE_LOW))
         return Notification.Builder(this, CHANNEL)
             .setSmallIcon(android.R.drawable.presence_video_online)
-            .setContentTitle("CarHome: запись данных автомобиля")
-            .setContentText("Долгое нажатие на часы — остановить")
+            .setContentTitle(getString(R.string.rec_title))
+            .setContentText(getString(R.string.rec_text))
             .setOngoing(true)
             .build()
     }

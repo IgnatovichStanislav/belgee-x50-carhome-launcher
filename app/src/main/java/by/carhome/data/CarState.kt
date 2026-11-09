@@ -1,5 +1,7 @@
 package by.carhome.data
 
+import by.carhome.R
+
 enum class Gear { P, R, N, D }
 
 /** Where the air goes; [window] = windshield. */
@@ -115,17 +117,22 @@ data class CarState(
 
 enum class Heat { STEERING, NOZZLE, WINDSHIELD }
 
-enum class Opening(val label: String) {
-    DRIVER("дверь водителя"), PASSENGER("дверь пассажира"), REAR_LEFT("задняя левая дверь"),
-    REAR_RIGHT("задняя правая дверь"), TRUNK("багажник"), HOOD("капот"),
+/** [label]: name in a list; [single]: the banner text when it is the only opening. */
+enum class Opening(val label: Int, val single: Int) {
+    DRIVER(R.string.opening_driver, R.string.opening_driver_one),
+    PASSENGER(R.string.opening_passenger, R.string.opening_passenger_one),
+    REAR_LEFT(R.string.opening_rear_left, R.string.opening_rear_left_one),
+    REAR_RIGHT(R.string.opening_rear_right, R.string.opening_rear_right_one),
+    TRUNK(R.string.opening_trunk, R.string.opening_trunk_one),
+    HOOD(R.string.opening_hood, R.string.opening_hood_one),
 }
 
 /** Phone projection status shown on the CarPlay / Android Auto cards. */
-enum class LinkStatus(val label: String) {
-    NOT_INSTALLED("Не установлен"),
-    DISCONNECTED("Не подключён"),
-    CONNECTING("Подключение…"),
-    CONNECTED("Подключён"),
+enum class LinkStatus(val label: Int) {
+    NOT_INSTALLED(R.string.link_not_installed),
+    DISCONNECTED(R.string.link_disconnected),
+    CONNECTING(R.string.link_connecting),
+    CONNECTED(R.string.link_connected),
     /** The session dropped or the handshake failed; the receiver app retries by itself. */
-    LOST("Нет связи"),
+    LOST(R.string.link_lost),
 }

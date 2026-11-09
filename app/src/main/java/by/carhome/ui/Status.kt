@@ -45,8 +45,15 @@ internal class BadgeView(ctx: Context, private val sizeDp: Float, glyphDp: Float
 /** «Состояние авто» (car status): 2x2 grid (coolant / oil / gearbox / tyres) + distance to service. Flag: true = problem, false = ok, null = unknown. */
 internal class StateTileView(ctx: Context) : View(ctx) {
     private val d = ctx.dpf(1f)
-    private val names = arrayOf("ОЖ", "Масло", "КПП", "Шины")
-    private val problems = arrayOf("Перегрев", "Низкое давление", "Перегрев", "Неисправность")
+    private val names = arrayOf(R.string.state_coolant, R.string.state_oil, R.string.state_gearbox, R.string.state_tires)
+        .map { ctx.getString(it) }
+    private val problems = arrayOf(R.string.state_overheat, R.string.state_low_pressure, R.string.state_overheat, R.string.state_fault)
+        .map { ctx.getString(it) }
+    private val okText = ctx.getString(R.string.state_ok)
+    private val noDataText = ctx.getString(R.string.state_no_data)
+    private val titleText = ctx.getString(R.string.state_title)
+    private val serviceLabel = ctx.getString(R.string.service)
+    private val kmUnit = " " + ctx.getString(R.string.unit_km)
     private val flags = arrayOfNulls<Boolean>(4)
     private var service: Int? = null
     private var serviceText = "—"
@@ -88,13 +95,13 @@ internal class StateTileView(ctx: Context) : View(ctx) {
         inited = true
         flags[0] = coolant; flags[1] = oil; flags[2] = gearbox; flags[3] = tires
         service = serviceKm
-        serviceText = if (serviceKm == null) "—" else context.grouped(serviceKm) + " км"
+        serviceText = if (serviceKm == null) "—" else context.grouped(serviceKm) + kmUnit
         this.anyWarn = anyWarn
         invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
-        canvas.drawText("Состояние авто", 25 * d, 37 * d, title)
+        canvas.drawText(titleText, 25 * d, 37 * d, title)
         for (i in 0 until 4) {
             val x = 25 * d + (i % 2) * 181 * d
             val cy = (86 + (i / 2) * 66) * d
@@ -114,7 +121,7 @@ internal class StateTileView(ctx: Context) : View(ctx) {
                 null -> canvas.drawText("—", cx - glyph.measureText("—") / 2f, glyph.baselineForCenter(cy), glyph)
             }
             val tx = x + 46 * d
-            val status = when (f) { true -> problems[i]; false -> "Норма"; null -> "нет данных" }
+            val status = when (f) { true -> problems[i]; false -> okText; null -> noDataText }
             tP.color = if (f == true) crit else txt
             sP.color = if (f == true) crit else dim
             sP.fit(status, 124 * d)
@@ -123,7 +130,7 @@ internal class StateTileView(ctx: Context) : View(ctx) {
         }
         // service row
         canvas.drawRect(25 * d, 192 * d, width - 25 * d, 193 * d, linePaint)
-        canvas.drawText("До ТО", 25 * d, 216 * d, svcL)
+        canvas.drawText(serviceLabel, 25 * d, 216 * d, svcL)
         canvas.drawText(serviceText, width - 25 * d - svcV.measureText(serviceText), 216 * d, svcV)
     }
 }
@@ -133,6 +140,7 @@ internal class StateTileView(ctx: Context) : View(ctx) {
  * Passenger: green or neutral grey, never red (the seat has no occupancy sensor).
  */
 internal class BeltsView(ctx: Context) : View(ctx) {
+    private val beltsText = ctx.getString(R.string.belts)
     private val d = ctx.dpf(1f)
     private val label = ctx.textPaint(20f, Fonts.regular, R.color.text_dim)
     private val icons = arrayOf<Drawable>(
@@ -165,15 +173,15 @@ internal class BeltsView(ctx: Context) : View(ctx) {
 
     /** Wraps the content: label + two seat icons, no trailing space. */
     override fun onMeasure(wSpec: Int, hSpec: Int) {
-        val w = 16 * d + label.measureText("Ремни") + 12 * d + 30 * d + 12 * d + 30 * d + 16 * d
+        val w = 16 * d + label.measureText(beltsText) + 12 * d + 30 * d + 12 * d + 30 * d + 16 * d
         setMeasuredDimension(kotlin.math.ceil(w).toInt(), MeasureSpec.getSize(hSpec))
     }
 
     override fun onDraw(canvas: Canvas) {
         val cy = height / 2f
         val pad = (if (driver == false) 17 else 16) * d
-        canvas.drawText("Ремни", pad, label.baselineForCenter(cy), label)
-        var x = pad + label.measureText("Ремни") + 12 * d
+        canvas.drawText(beltsText, pad, label.baselineForCenter(cy), label)
+        var x = pad + label.measureText(beltsText) + 12 * d
         val sz = (30 * d).toInt()
         for (i in 0..1) {
             val color = if (i == 0) when (driver) { true -> okC; false -> crit; null -> inactive }
@@ -191,6 +199,9 @@ internal class BeltsView(ctx: Context) : View(ctx) {
 
 /** AutoHold: dimmed «выкл» at 0/null; 1 = armed (blue ring), 2 = holding (green). */
 internal class AutoHoldView(ctx: Context) : View(ctx) {
+    private val armedLabel = ctx.getString(R.string.autohold_armed)
+    private val holdingText = ctx.getString(R.string.autohold_holding)
+    private val offText = ctx.getString(R.string.autohold_off)
     private val d = ctx.dpf(1f)
     private val ring = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 2.5f * d }
     private val ringFill = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -232,7 +243,7 @@ internal class AutoHoldView(ctx: Context) : View(ctx) {
         canvas.drawCircle(cx, cy, 14.75f * d, ring)
         canvas.drawText("A", cx - letter.measureText("A") / 2f, letter.baselineForCenter(cy), letter)
         canvas.drawText("AutoHold", 61 * d, 21.5f * d, title)
-        canvas.drawText(if (st == 1) "готов" else if (st == 2) "держит" else "выкл", 61 * d, 39.5f * d, sub)
+        canvas.drawText(if (st == 1) armedLabel else if (st == 2) holdingText else offText, 61 * d, 39.5f * d, sub)
     }
 }
 
@@ -297,10 +308,9 @@ internal class DoorBanner(ctx: Context) : View(ctx) {
         }
         val list = openings.sortedBy { it.ordinal }
         text = if (list.size == 1) {
-            val o = list[0]
-            (if (o == Opening.TRUNK || o == Opening.HOOD) "Открыт " else "Открыта ") + o.label
+            context.getString(list[0].single)
         } else {
-            "Открыто: " + list.joinToString(", ") { it.label }
+            context.getString(R.string.openings_many, list.joinToString(", ") { context.getString(it.label) })
         }
         p.fit(text, width - 2 * (20 + 24 + 8 + 20) * d)
         visibility = VISIBLE
