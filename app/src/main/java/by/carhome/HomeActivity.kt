@@ -18,6 +18,7 @@ import java.util.Locale
 class HomeActivity : Activity() {
     // Real car data (ECARX adapt API + VHAL).
     private lateinit var real: CarDataSource
+    private val hvacPanel = by.carhome.data.HvacPanel(this)
     private val dataSource: CarDataSource get() = real
 
     private lateinit var home: HomeView
@@ -203,6 +204,7 @@ class HomeActivity : Activity() {
         super.onCreate(savedInstanceState)
         by.carhome.ui.Fonts.init(this)
         real = EcarxCarDataSource(this)
+        hvacPanel.bind()
         updateClockText()
         home = buildHome(true)
         recBadge = buildBadge(true)
@@ -372,6 +374,7 @@ class HomeActivity : Activity() {
     }
 
     override fun onDestroy() {
+        hvacPanel.unbind()
         dataSource.release()
         super.onDestroy()
     }
@@ -442,6 +445,8 @@ class HomeActivity : Activity() {
             }
             return
         }
+        // Same overlay panel as the nav bar button; the climate app is the fallback.
+        if (spec.kind == TileKind.CLIMATE && hvacPanel.openMain()) return
         val i = packageManager.getLaunchIntentForPackage(spec.pkg)
         if (i == null) {
             Toast.makeText(this, getString(R.string.app_not_found, getString(spec.label).replace('\n', ' ')), Toast.LENGTH_SHORT).show()
