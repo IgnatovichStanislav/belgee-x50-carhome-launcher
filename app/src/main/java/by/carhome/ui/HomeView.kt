@@ -152,11 +152,12 @@ class HomeView(
         }
         clipToOutline = true
 
-        // car scene (baked: centred, masked edges) + speed streaks.
-        // 87% of the 842x390 artwork, bottom edge kept at 500 so the wheels stay above the gear row.
+        // car scene (baked: masked edges) + speed streaks.
+        // 87% of the 842x390 artwork; the visible car (34..825 x 4..377 in the artwork) is centred on x880 and
+        // between the column tops (115) and the gear row (534).
         put(ImageView(ctx).apply {
             setImageResource(R.drawable.car_image); scaleType = ImageView.ScaleType.FIT_XY
-        }, 504f, 161f, px(733f), px(339f))
+        }, 506f, 159f, px(733f), px(339f))
         put(streaks, 440f, 110f, px(880f), px(400f))
 
         // clock / date
@@ -221,10 +222,10 @@ class HomeView(
         // Row under the car is symmetric inside the car area (x 434..1326, centre 880):
         // AutoHold flush left, gears centred under the car (238 wide → 761), belts chip flush right next to the heaters.
         // The two chips appear only when needed (AutoHold on, driver unbuckled); fixed slots keep the gears in place.
-        put(autoHold, 434f, 513f, px(240f), px(52f))
-        put(gear, 761f, 513f)
+        put(autoHold, 434f, 534f, px(240f), px(52f))
+        put(gear, 761f, 534f)
         addView(belts, LayoutParams(WRAP, px(52f)).apply {
-            gravity = Gravity.TOP or Gravity.END; rightMargin = px(434f); topMargin = px(513f)
+            gravity = Gravity.TOP or Gravity.END; rightMargin = px(434f); topMargin = px(534f)
         })
         put(doors, 530f, 124f, px(700f), px(46f))
         doors.visibility = View.GONE
