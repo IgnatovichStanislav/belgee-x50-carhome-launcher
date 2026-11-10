@@ -49,7 +49,7 @@ private fun Canvas.drawTabular(s: String, x: Float, y: Float, p: Paint) {
 internal class StatTileView(ctx: Context, private val lines: List<String>) : View(ctx) {
     private val d = ctx.dpf(1f)
     private val label = ctx.textPaint(20f, Fonts.regular, R.color.text_dim)
-    private val valueP = ctx.textPaint(48f, Fonts.medium, R.color.text)
+    private val valueP = ctx.textPaint(52f, Fonts.medium, R.color.text)
     private val unitP = ctx.textPaint(24f, Fonts.regular, R.color.text_dim)
     private val badge = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = ctx.getColor(R.color.crit) }
     private val glyph = ctx.textPaint(17f, Fonts.bold, R.color.on_accent)
@@ -69,17 +69,16 @@ internal class StatTileView(ctx: Context, private val lines: List<String>) : Vie
         invalidate()
     }
 
+    // Half-width tile: label on top, value under it, both left-aligned.
     override fun onDraw(canvas: Canvas) {
         val x0 = 25 * d
-        val lb = height / 2f + 7 * d
-        val vb = height / 2f + 15 * d
+        val lb = 42 * d
+        val vb = 96 * d
         val off = if (warn) 32 * d else 0f
         canvas.drawText(lines[0], x0 + off, lb, label)
         if (warn) canvas.drawBadge(x0 + 12 * d, lb - 6 * d, 12 * d, badge, glyph)
-        val right = width - 24 * d
-        val uw = unitP.measureText(unit)
-        canvas.drawText(unit, right - uw, vb, unitP)
-        canvas.drawText(value, right - uw - 6 * d - valueP.measureText(value), vb, valueP)
+        canvas.drawText(value, x0, vb, valueP)
+        canvas.drawText(unit, x0 + valueP.measureText(value) + 6 * d, vb, unitP)
     }
 }
 
