@@ -1,6 +1,6 @@
 id=carhome
 name=BG Car Home launcher
-version=v1.1.0
-versionCode=10100
+version=v1.1.1
+versionCode=10101
 author=Stanislau Ihnatovich
 description=BG Car Home: custom home screen with live car data for Belgee X50 (priv-app by.carhome). Remove the module to roll back; the stock launcher stays installed.

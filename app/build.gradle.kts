@@ -20,8 +20,8 @@ android {
         minSdk = 28
         targetSdk = 28
         // Semantic version: MAJOR.MINOR.PATCH; versionCode = MAJOR*10000 + MINOR*100 + PATCH.
-        versionName = "1.1.0"
-        versionCode = 10100
+        versionName = "1.1.1"
+        versionCode = 10101
         // Shown in the about card (7 taps on the clock).
         buildConfigField("String", "BUILD_DATE", "\"$commitDate\"")
     }
