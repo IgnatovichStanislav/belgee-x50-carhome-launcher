@@ -153,10 +153,11 @@ class HomeView(
         }
         clipToOutline = true
 
-        // car scene (baked: centred, masked edges) + speed streaks
+        // car scene (baked: centred, masked edges) + speed streaks.
+        // 87% of the 842x390 artwork, bottom edge kept at 500 so the wheels stay above the gear row.
         put(ImageView(ctx).apply {
             setImageResource(R.drawable.car_image); scaleType = ImageView.ScaleType.FIT_XY
-        }, 450f, 110f, px(842f), px(390f))
+        }, 504f, 161f, px(733f), px(339f))
         put(streaks, 440f, 110f, px(880f), px(400f))
 
         // clock / date
