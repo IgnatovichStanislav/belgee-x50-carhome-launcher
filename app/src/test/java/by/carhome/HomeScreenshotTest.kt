@@ -44,6 +44,8 @@ class HomeNightTest {
 
     @Test fun normal() = shoot(paparazzi, "home-night", FakeStates.normal())
     @Test fun warning() = shoot(paparazzi, "home-night-warn", FakeStates.warning())
+    @Test fun bigNumbers() = shoot(paparazzi, "home-night-big", FakeStates.bigNumbers())
+    @Test fun serviceOverdue() = shoot(paparazzi, "home-night-overdue", FakeStates.serviceOverdue())
 }
 
 class HomeDayTest {

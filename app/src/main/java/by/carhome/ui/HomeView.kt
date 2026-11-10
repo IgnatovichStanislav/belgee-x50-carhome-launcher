@@ -23,7 +23,6 @@ import by.carhome.data.CarState
 import by.carhome.data.Heat
 import by.carhome.data.Thresholds
 import java.util.Locale
-import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -56,8 +55,6 @@ class HomeView(
     private val date = RunView(ctx, paints(ctx.textPaint(22f, Fonts.regular, R.color.text_dim)))
     private val wifi = StatusRow(ctx, R.drawable.ic_wifi)
     private val bt = StatusRow(ctx, R.drawable.ic_bt)
-    private val tripVal = valueRun(32f, Fonts.regular, R.color.text, 20f)
-    private val odoVal = RunView(ctx, paints(ctx.textPaint(32f, Fonts.regular, R.color.text_2), ctx.textPaint(20f, Fonts.regular, R.color.text_dim)), gapL = 3 * d, gapR = 0f)
     private val speed = RunView(
         ctx,
         paints(ctx.textPaint(150f, Fonts.light, R.color.text).apply { letterSpacing = -2f / 150f },
@@ -74,11 +71,8 @@ class HomeView(
     private val gear = GearView(ctx)
     private val rangeTile = View(ctx).apply { setBackgroundResource(R.drawable.tile) }
     private val rangeBadge = BadgeView(ctx, 24f, 17f)
-    private val state = StateTileView(ctx)
-    private val belts = BeltsView(ctx)
-    private val autoHold = AutoHoldView(ctx)
+    private val state = CarStateBlockView(ctx)
     private val doors = DoorBanner(ctx)
-    private val battery = StatTileView(ctx, listOf(ctx.getString(R.string.battery)))
     private val heaters = arrayOf(
         HeaterButton(ctx, R.drawable.ic_heat_wheel, ctx.getString(R.string.heat_wheel)),
         HeaterButton(ctx, R.drawable.ic_heat_nozzle, ctx.getString(R.string.heat_nozzle)),
@@ -93,10 +87,8 @@ class HomeView(
     private val softCrit = ctx.getColor(R.color.crit_soft)
     private val textColor = ctx.getColor(R.color.text)
     private val dimColor = ctx.getColor(R.color.text_dim)
-    private val okColor = ctx.getColor(R.color.ok)
     private val accentColor = ctx.getColor(R.color.accent)
 
-    private val km = ctx.getString(R.string.unit_km)
     private val rangeText = ctx.getString(R.string.range)
     private val fuelLowText = ctx.getString(R.string.fuel_low)
 
@@ -111,10 +103,6 @@ class HomeView(
 
     /** No answer from the car after a tap (command rejected): show the car's real state again. */
     private val heatRevert = Array(3) { i -> Runnable { heaters[i].on = last?.let { heatOf(it, i) } == true } }
-
-    private fun valueRun(sizeDp: Float, tf: android.graphics.Typeface, color: Int, unitDp: Float) =
-        RunView(context, paints(context.textPaint(sizeDp, tf, color), context.textPaint(unitDp, Fonts.regular, R.color.text_dim)),
-            gapL = 3 * d, gapR = 8 * d)
 
     private fun put(v: View, x: Float, y: Float, w: Int = WRAP, h: Int = WRAP) {
         addView(v, LayoutParams(w, h).apply { leftMargin = px(x); topMargin = px(y) })
@@ -134,8 +122,6 @@ class HomeView(
         g.addView(valueView, LayoutParams(WRAP, WRAP).apply { topMargin = px(valueTop) })
         return g
     }
-
-    private fun vTop(r: RunView) = 57f - r.ascent / d
 
     private fun keyRun(text: String): RunView =
         RunView(context, paints(context.textPaint(18f, Fonts.regular, R.color.text_dim))).apply { setParts(text) }
@@ -168,26 +154,12 @@ class HomeView(
         date.setOnLongClickListener { onDateLongPress?.invoke(); true }
         clock.isLongClickable = true
 
-        // Wi-Fi / Bluetooth
+        // Wi-Fi / Bluetooth on the right; the text ends at the right column edge (x1744).
         val lgrp = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
         fun lp(h: Float) = LinearLayout.LayoutParams(WRAP, px(h)).apply { gravity = Gravity.CENTER_VERTICAL }
         lgrp.addView(group(keyRun("Wi-Fi"), 17f, wifi, 25f, 66f, true), lp(66f))
-        lgrp.addView(group(keyRun("Bluetooth"), 17f, bt, 25f, 66f, true), lp(66f))
-        put(lgrp, 266f, 16f, WRAP, px(80f))
-        // Long dates ("понедельник, 30 сентября") are wider than the clock: keep the divider clear of them.
-        val pushWifi = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-            val lp = lgrp.layoutParams as LayoutParams
-            val left = maxOf(px(266f), maxOf(clock.right, date.right) + px(22f))
-            if (lp.leftMargin != left) { lp.leftMargin = left; lgrp.post { lgrp.requestLayout() } }
-        }
-        clock.addOnLayoutChangeListener(pushWifi)
-        date.addOnLayoutChangeListener(pushWifi)
-
-        // trip / odometer
-        val trg = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
-        trg.addView(group(keyRun(ctx.getString(R.string.trip)), 20f, tripVal, vTop(tripVal), 71f, false), lp(71f))
-        trg.addView(group(keyRun(ctx.getString(R.string.odometer)), 20f, odoVal, vTop(odoVal), 71f, true, false), lp(71f))
-        addView(trg, LayoutParams(WRAP, px(80f)).apply { gravity = Gravity.END or Gravity.TOP; rightMargin = px(20f); topMargin = px(16f) })
+        lgrp.addView(group(keyRun("Bluetooth"), 17f, bt, 25f, 66f, true, false), lp(66f))
+        addView(lgrp, LayoutParams(WRAP, px(80f)).apply { gravity = Gravity.END or Gravity.TOP; rightMargin = px(16f); topMargin = px(16f) })
 
         // Side columns share one grid: x16 / x1342, w402; rows y115 h210, y339 h131, y484 h102;
         // gap 14 between rows and above the app row (y600).
@@ -203,10 +175,8 @@ class HomeView(
         put(fuelBar, 41f, 441f, px(352f), px(18f))
         fuelBar.mark = Thresholds.FUEL_LOW_LITERS / by.carhome.data.EcarxCarDataSource.FUEL_TANK_L
 
-        // right column: car state, battery, AutoHold
-        put(state, 1342f, 115f, px(402f), px(210f))
-        put(battery, 1342f, 339f, px(402f), px(131f))
-        put(autoHold, 1342f, 484f, px(402f), px(102f))
+        // right column: one car-state tile, as tall as the whole left column
+        put(state, 1342f, 115f, px(402f), px(471f))
         val heat = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
         val kinds = Heat.values()
         for ((i, b) in heaters.withIndex()) {
@@ -220,12 +190,8 @@ class HomeView(
         }
         put(heat, 16f, 484f, px(402f), px(102f))
 
-        // under the car: gears centred (238 wide → 761, centre 880), belts chip flush right (ends at 1326);
-        // both level with the bottom side row. Door banner above the car.
+        // under the car: gears centred (238 wide → 761, centre 880), level with the bottom side row. Door banner above the car.
         put(gear, 761f, 509f)
-        addView(belts, LayoutParams(WRAP, px(52f)).apply {
-            gravity = Gravity.TOP or Gravity.END; rightMargin = px(434f); topMargin = px(509f)
-        })
         put(doors, 530f, 124f, px(700f), px(46f))
         doors.visibility = View.GONE
 
@@ -277,17 +243,13 @@ class HomeView(
         if (!paused && motionEnabled) streaks.setActive((last?.speedKmh ?: 0) > 0)
     }
 
-    private fun grouped(n: Int): String {
-        val s = abs(n).toString()
-        val sb = StringBuilder()
-        for (i in s.indices) {
-            if (i > 0 && (s.length - i) % 3 == 0) sb.append(' ')
-            sb.append(s[i])
-        }
-        return if (n < 0) "−$sb" else sb.toString()
-    }
+    private fun f1(v: Float?) = oneDecimal(v)
 
-    private fun f1(v: Float?) = if (v == null) "—" else String.format(Locale.US, "%.1f", v)
+    /** Everything the car-state tile shows: redraw it only when one of these changes. */
+    private fun stateKey(s: CarState) = listOf(
+        s.tripKm, s.odometerKm, s.serviceKm, s.coolantOverheat, s.oilPressureLow, s.gearboxOverheat, s.tireWarning,
+        s.batteryV, s.batteryLevel, s.beltDriver, s.beltPassenger, s.autoHold,
+    )
 
     /** Updates only the widgets whose values changed. */
     fun render(n: CarState) {
@@ -295,9 +257,6 @@ class HomeView(
         last = n
         if (o == null || o.wifiSsid != n.wifiSsid) wifi.set(n.wifiSsid ?: context.getString(R.string.no_wifi), n.wifiSsid != null)
         if (o == null || o.btDevice != n.btDevice) bt.set(n.btDevice ?: context.getString(R.string.no_bt), n.btDevice != null)
-
-        if (o?.tripKm != n.tripKm) tripVal.setParts(f1(n.tripKm), km)
-        if (o?.odometerKm != n.odometerKm) odoVal.setParts(n.odometerKm?.let { grouped(it) } ?: "—", km)
 
         if (o?.speedKmh != n.speedKmh) {
             speed.setParts(n.speedKmh?.toString() ?: "—", context.getString(R.string.unit_kmh))
@@ -318,13 +277,14 @@ class HomeView(
         }
 
         gear.gear = n.gear
-        state.set(n.coolantOverheat, n.oilPressureLow, n.gearboxOverheat, n.tireWarning, n.serviceKm, n.anyCarWarning)
-        belts.set(n.beltDriver, n.beltPassenger)
-        autoHold.set(n.autoHold)
         doors.set(n.openings)
-        if (o?.batteryV != n.batteryV || o?.engineRunning != n.engineRunning) {
-            val low = n.batteryLevel == by.carhome.data.BatteryLevel.LOW
-            battery.set(f1(n.batteryV), context.getString(R.string.unit_v), low, if (low) critColor else okColor)
+        if (o == null || stateKey(o) != stateKey(n)) {
+            state.set(
+                n.tripKm, n.odometerKm, n.serviceKm,
+                n.coolantOverheat, n.oilPressureLow, n.gearboxOverheat, n.tireWarning,
+                n.batteryV, n.batteryLevel == by.carhome.data.BatteryLevel.LOW,
+                n.beltDriver, n.beltPassenger, n.autoHold,
+            )
         }
         // Heaters: take the car's state only when it changes (keeps the optimistic toggle until then);
         // a change is the car's answer, so the pending revert is dropped.

@@ -17,16 +17,6 @@ private fun Paint.fit(text: String, maxW: Float) {
     if (w > maxW) textScaleX = maxW / w
 }
 
-private fun Context.grouped(n: Int): String {
-    val s = kotlin.math.abs(n).toString()
-    val sb = StringBuilder()
-    for (i in s.indices) {
-        if (i > 0 && (s.length - i) % 3 == 0) sb.append(' ')
-        sb.append(s[i])
-    }
-    return sb.toString()
-}
-
 /** Red circle with an exclamation mark. */
 internal class BadgeView(ctx: Context, private val sizeDp: Float, glyphDp: Float) : View(ctx) {
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = ctx.getColor(R.color.crit) }
@@ -42,30 +32,47 @@ internal class BadgeView(ctx: Context, private val sizeDp: Float, glyphDp: Float
     }
 }
 
-/** «Состояние авто» (car status): 2x2 grid (coolant / oil / gearbox / tyres) + distance to service. Flag: true = problem, false = ok, null = unknown. */
-internal class StateTileView(ctx: Context) : View(ctx) {
+/**
+ * «Состояние авто»: one tall tile on the right (402x471). Top to bottom: trip / odometer / to service,
+ * the four systems (coolant, oil, gearbox, tyres), battery + seat belts, AutoHold.
+ * Any problem paints its cell red and gives the whole tile a red border; AutoHold holding is not a problem.
+ */
+internal class CarStateBlockView(ctx: Context) : View(ctx) {
     private val d = ctx.dpf(1f)
+    private val titleText = ctx.getString(R.string.state_title)
+    private val infoLabels = arrayOf(R.string.trip_km, R.string.odometer_km, R.string.service_km).map { ctx.getString(it) }
     private val names = arrayOf(R.string.state_coolant, R.string.state_oil, R.string.state_gearbox, R.string.state_tires)
         .map { ctx.getString(it) }
     private val problems = arrayOf(R.string.state_overheat, R.string.state_low_pressure, R.string.state_overheat, R.string.state_fault)
         .map { ctx.getString(it) }
     private val okText = ctx.getString(R.string.state_ok)
     private val noDataText = ctx.getString(R.string.state_no_data)
-    private val titleText = ctx.getString(R.string.state_title)
-    private val serviceLabel = ctx.getString(R.string.service)
-    private val kmUnit = " " + ctx.getString(R.string.unit_km)
-    private val flags = arrayOfNulls<Boolean>(4)
-    private var service: Int? = null
-    private var serviceText = "—"
-    private var anyWarn = false
-    private var inited = false
+    private val batteryText = ctx.getString(R.string.battery)
+    private val beltsText = ctx.getString(R.string.belts)
+    private val unitV = ctx.getString(R.string.unit_v)
+    private val armedLabel = ctx.getString(R.string.autohold_armed)
+    private val holdingText = ctx.getString(R.string.autohold_holding)
+    private val offText = ctx.getString(R.string.autohold_off)
+
     private val title = ctx.textPaint(20f, Fonts.regular, R.color.text_dim)
-    private val tP = ctx.textPaint(22f, Fonts.regular, R.color.text)
-    private val sP = ctx.textPaint(17f, Fonts.regular, R.color.text_dim)
-    private val svcL = ctx.textPaint(18f, Fonts.regular, R.color.text_dim)
-    private val svcV = ctx.textPaint(18f, Fonts.regular, R.color.text)
+    private val infoKey = ctx.textPaint(16f, Fonts.regular, R.color.text_dim)
+    private val infoVal = ctx.textPaint(28f, Fonts.regular, R.color.text)
+    private val nameP = ctx.textPaint(22f, Fonts.regular, R.color.text)
+    private val statusP = ctx.textPaint(16f, Fonts.regular, R.color.text_dim)
+    private val cellKey = ctx.textPaint(18f, Fonts.regular, R.color.text_dim)
+    private val battVal = ctx.textPaint(48f, Fonts.medium, R.color.ok)
+    private val battUnit = ctx.textPaint(22f, Fonts.regular, R.color.text_dim)
+    private val ahTitle = ctx.textPaint(24f, Fonts.regular, R.color.text)
+    private val ahState = ctx.textPaint(22f, Fonts.regular, R.color.text)
+    private val ahLetter = ctx.textPaint(20f, Fonts.regular, R.color.accent)
     private val glyph = ctx.textPaint(22f, Fonts.bold, R.color.on_accent)
+    private val badgeGlyph = ctx.textPaint(17f, Fonts.bold, R.color.on_accent)
+
+    private val well = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = ctx.getColor(R.color.well) }
+    private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 2 * d }
     private val circle = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val ring = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 3 * d }
     private val linePaint = Paint().apply { color = ctx.getColor(R.color.line) }
     private val tick = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -74,177 +81,170 @@ internal class StateTileView(ctx: Context) : View(ctx) {
         strokeJoin = Paint.Join.ROUND
         color = ctx.getColor(R.color.on_ok)
     }
+    private val seats = arrayOf<Drawable>(
+        ctx.getDrawable(R.drawable.ic_seat)!!.mutate(), ctx.getDrawable(R.drawable.ic_seat)!!.mutate(),
+    )
     private val path = Path()
+    private val rect = RectF()
+
     private val okC = ctx.getColor(R.color.ok)
     private val crit = ctx.getColor(R.color.crit)
+    private val critBg = ctx.getColor(R.color.crit_bg)
     private val dim = ctx.getColor(R.color.text_dim)
     private val txt = ctx.getColor(R.color.text)
     private val inactive = ctx.getColor(R.color.inactive)
+    private val neutral = ctx.getColor(R.color.neutral)
+    private val accent = ctx.getColor(R.color.accent)
+    private val connStart = ctx.getColor(R.color.conn_start)
+    private val armedBorder = ctx.getColor(R.color.armed_border)
+    private val holdBorder = ctx.getColor(R.color.hold_border)
+    private val onOk = ctx.getColor(R.color.hold_ring_text)
+
+    private var info = arrayOf("—", "—", "—")
+    private val flags = arrayOfNulls<Boolean>(4)
+    private var battery = "—"
+    private var batteryLow = false
+    private var driver: Boolean? = null
+    private var passenger: Boolean? = null
+    private var autoHold = 0
+    private var alert: Boolean? = null
 
     init {
         setBackgroundResource(R.drawable.tile)
+        contentDescription = titleText
     }
 
-    fun set(coolant: Boolean?, oil: Boolean?, gearbox: Boolean?, tires: Boolean?, serviceKm: Int?, anyWarn: Boolean) {
-        if (inited && flags[0] == coolant && flags[1] == oil && flags[2] == gearbox && flags[3] == tires &&
-            service == serviceKm && this.anyWarn == anyWarn
-        ) return
-        if (!inited || this.anyWarn != anyWarn) {
-            setBackgroundResource(if (anyWarn) R.drawable.tile_warn else R.drawable.tile)
-        }
-        inited = true
+    fun set(
+        tripKm: Float?, odometerKm: Int?, serviceKm: Int?,
+        coolant: Boolean?, oil: Boolean?, gearbox: Boolean?, tires: Boolean?,
+        batteryV: Float?, batteryLow: Boolean,
+        driver: Boolean?, passenger: Boolean?,
+        autoHold: Int?,
+    ) {
+        info = arrayOf(oneDecimal(tripKm), odometerKm?.let { groupThousands(it) } ?: "—", serviceKm?.let { groupThousands(it) } ?: "—")
         flags[0] = coolant; flags[1] = oil; flags[2] = gearbox; flags[3] = tires
-        service = serviceKm
-        serviceText = if (serviceKm == null) "—" else context.grouped(serviceKm) + kmUnit
-        this.anyWarn = anyWarn
+        battery = oneDecimal(batteryV)
+        this.batteryLow = batteryLow
+        this.driver = driver
+        this.passenger = passenger
+        this.autoHold = if (autoHold == 1 || autoHold == 2) autoHold else 0
+        val a = flags.any { it == true } || batteryLow || driver == false
+        if (a != alert) {
+            alert = a
+            setBackgroundResource(if (a) R.drawable.tile_alert else R.drawable.tile)
+        }
         invalidate()
     }
 
+    private fun cell(canvas: Canvas, x: Float, y: Float, w: Float, h: Float, bad: Boolean) {
+        rect.set(x * d, y * d, (x + w) * d, (y + h) * d)
+        if (bad) {
+            fill.color = critBg
+            canvas.drawRoundRect(rect, 16 * d, 16 * d, fill)
+            stroke.color = crit
+            rect.inset(d, d)
+            canvas.drawRoundRect(rect, 15 * d, 15 * d, stroke)
+        } else {
+            canvas.drawRoundRect(rect, 16 * d, 16 * d, well)
+        }
+    }
+
     override fun onDraw(canvas: Canvas) {
-        canvas.drawText(titleText, 25 * d, 37 * d, title)
+        canvas.drawText(titleText, 20 * d, 37 * d, title)
+
+        // Trip / odometer / to service: label on top (unit in it), value under it, centred in three equal columns.
+        val colW = 362f / 3
+        for (i in 0..2) {
+            val cx = (20 + colW * i + colW / 2) * d
+            if (i > 0) canvas.drawRect((20 + colW * i) * d, 54 * d, (20 + colW * i) * d + d, 106 * d, linePaint)
+            infoKey.fit(infoLabels[i], (colW - 8) * d)
+            canvas.drawText(infoLabels[i], cx - infoKey.measureText(infoLabels[i]) * infoKey.textScaleX / 2f, 70 * d, infoKey)
+            infoVal.fit(info[i], (colW - 8) * d)
+            infoVal.color = if (info[i] == "—") inactive else txt
+            canvas.drawText(info[i], cx - infoVal.measureText(info[i]) * infoVal.textScaleX / 2f, 102 * d, infoVal)
+        }
+        canvas.drawRect(20 * d, 122 * d, 382 * d, 123 * d, linePaint)
+
+        // Systems 2x2: cells 177x60.
         for (i in 0 until 4) {
-            val x = 25 * d + (i % 2) * 181 * d
-            val cy = (76 + (i / 2) * 54) * d
-            val cx = x + 17 * d
+            val x = if (i % 2 == 0) 20f else 205f
+            val y = if (i < 2) 136f else 204f
             val f = flags[i]
+            cell(canvas, x, y, 177f, 60f, f == true)
+            val cy = (y + 30) * d
+            val ccx = (x + 14 + 17) * d
             circle.color = when (f) { true -> crit; false -> okC; null -> inactive }
-            canvas.drawCircle(cx, cy, 17 * d, circle)
+            canvas.drawCircle(ccx, cy, 17 * d, circle)
             when (f) {
                 false -> {
                     path.reset()
-                    path.moveTo(cx - 6.5f * d, cy + 0.5f * d)
-                    path.lineTo(cx - 1.8f * d, cy + 5.2f * d)
-                    path.lineTo(cx + 6.8f * d, cy - 5f * d)
+                    path.moveTo(ccx - 6.5f * d, cy + 0.5f * d)
+                    path.lineTo(ccx - 1.8f * d, cy + 5.2f * d)
+                    path.lineTo(ccx + 6.8f * d, cy - 5f * d)
                     canvas.drawPath(path, tick)
                 }
-                true -> canvas.drawText("!", cx - glyph.measureText("!") / 2f, glyph.baselineForCenter(cy), glyph)
-                null -> canvas.drawText("—", cx - glyph.measureText("—") / 2f, glyph.baselineForCenter(cy), glyph)
+                true -> canvas.drawText("!", ccx - glyph.measureText("!") / 2f, glyph.baselineForCenter(cy), glyph)
+                null -> canvas.drawText("—", ccx - glyph.measureText("—") / 2f, glyph.baselineForCenter(cy), glyph)
             }
-            val tx = x + 46 * d
             val status = when (f) { true -> problems[i]; false -> okText; null -> noDataText }
-            tP.color = if (f == true) crit else txt
-            sP.color = if (f == true) crit else dim
-            sP.fit(status, 124 * d)
-            canvas.drawText(names[i], tx, cy - 5 * d, tP)
-            canvas.drawText(status, tx, cy + 15 * d, sP)
+            nameP.color = if (f == true) crit else txt
+            statusP.color = if (f == true) crit else dim
+            nameP.fit(names[i], 109 * d)
+            statusP.fit(status, 109 * d)
+            canvas.drawText(names[i], (x + 60) * d, cy - d, nameP)
+            canvas.drawText(status, (x + 60) * d, cy + 18 * d, statusP)
         }
-        // service row
-        canvas.drawRect(25 * d, 160 * d, width - 25 * d, 161 * d, linePaint)
-        canvas.drawText(serviceLabel, 25 * d, 187 * d, svcL)
-        canvas.drawText(serviceText, width - 25 * d - svcV.measureText(serviceText), 187 * d, svcV)
-    }
-}
 
-/**
- * «Ремни» (seat belts). Driver: green / red with "!" and a red chip border / grey without data.
- * Passenger: green or neutral grey, never red (the seat has no occupancy sensor).
- */
-internal class BeltsView(ctx: Context) : View(ctx) {
-    private val beltsText = ctx.getString(R.string.belts)
-    private val d = ctx.dpf(1f)
-    private val label = ctx.textPaint(20f, Fonts.regular, R.color.text_dim)
-    private val icons = arrayOf<Drawable>(
-        ctx.getDrawable(R.drawable.ic_seat)!!.mutate(), ctx.getDrawable(R.drawable.ic_seat)!!.mutate(),
-    )
-    private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = ctx.getColor(R.color.crit) }
-    private val glyph = ctx.textPaint(11f, Fonts.bold, R.color.on_accent)
-    private val okC = ctx.getColor(R.color.ok)
-    private val crit = ctx.getColor(R.color.crit)
-    private val inactive = ctx.getColor(R.color.inactive)
-    private val neutral = ctx.getColor(R.color.neutral)
-    private val dim = ctx.getColor(R.color.text_dim)
-    private var driver: Boolean? = null
-    private var passenger: Boolean? = null
-    private var inited = false
+        // Battery 177x96.
+        cell(canvas, 20f, 276f, 177f, 96f, batteryLow)
+        cellKey.color = if (batteryLow) crit else dim
+        cellKey.fit(batteryText, if (batteryLow) 113 * d else 145 * d)
+        canvas.drawText(batteryText, 36 * d, 304 * d, cellKey)
+        if (batteryLow) canvas.drawBadge(169 * d, 300 * d, 12 * d, circle.apply { color = crit }, badgeGlyph)
+        battVal.color = if (batteryLow) crit else okC
+        canvas.drawText(battery, 36 * d, 358 * d, battVal)
+        canvas.drawText(unitV, 36 * d + battVal.measureText(battery) + 6 * d, 358 * d, battUnit)
 
-    fun set(driver: Boolean?, passenger: Boolean?) {
-        if (inited && driver == this.driver && passenger == this.passenger) return
-        val warnChanged = !inited || (driver == false) != (this.driver == false)
-        inited = true
-        this.driver = driver
-        this.passenger = passenger
-        if (warnChanged) {
-            val warn = driver == false
-            setBackgroundResource(if (warn) R.drawable.chip_warn else R.drawable.chip)
-            label.color = if (warn) crit else dim
-        }
-        invalidate()
-    }
-
-    /** Wraps the content: label + two seat icons, no trailing space. */
-    override fun onMeasure(wSpec: Int, hSpec: Int) {
-        val w = 16 * d + label.measureText(beltsText) + 12 * d + 30 * d + 12 * d + 30 * d + 16 * d
-        setMeasuredDimension(kotlin.math.ceil(w).toInt(), MeasureSpec.getSize(hSpec))
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        val cy = height / 2f
-        val pad = (if (driver == false) 17 else 16) * d
-        canvas.drawText(beltsText, pad, label.baselineForCenter(cy), label)
-        var x = pad + label.measureText(beltsText) + 12 * d
-        val sz = (30 * d).toInt()
+        // Seat belts 177x96: driver green / red with "!" / grey without data; passenger green or grey, never red.
+        cell(canvas, 205f, 276f, 177f, 96f, driver == false)
+        cellKey.color = if (driver == false) crit else dim
+        cellKey.fit(beltsText, 145 * d)
+        canvas.drawText(beltsText, 221 * d, 304 * d, cellKey)
         for (i in 0..1) {
-            val color = if (i == 0) when (driver) { true -> okC; false -> crit; null -> inactive }
-            else if (passenger == true) okC else neutral
-            icons[i].setTint(color)
-            val top = (cy - sz / 2f).toInt()
-            icons[i].setBounds(x.toInt(), top, x.toInt() + sz, top + sz)
-            icons[i].draw(canvas)
-            // Small badge kept inside the icon box so it does not merge with the red chip border.
-            if (i == 0 && driver == false) canvas.drawBadge(x + sz - 4 * d, top + 5 * d, 7 * d, fill, glyph)
-            x += sz + 12 * d
+            val x = (209 + 54 * i) * d
+            val y = 310 * d
+            seats[i].setTint(
+                if (i == 0) when (driver) { true -> okC; false -> crit; null -> inactive }
+                else if (passenger == true) okC else neutral,
+            )
+            seats[i].setBounds(x.toInt(), y.toInt(), (x + 56 * d).toInt(), (y + 56 * d).toInt())
+            seats[i].draw(canvas)
         }
-    }
-}
+        if (driver == false) canvas.drawBadge(257 * d, 320 * d, 12 * d, circle.apply { color = crit }, badgeGlyph)
 
-/** AutoHold: dimmed «выкл» at 0/null; 1 = armed (blue ring), 2 = holding (green). */
-internal class AutoHoldView(ctx: Context) : View(ctx) {
-    private val armedLabel = ctx.getString(R.string.autohold_armed)
-    private val holdingText = ctx.getString(R.string.autohold_holding)
-    private val offText = ctx.getString(R.string.autohold_off)
-    private val d = ctx.dpf(1f)
-    private val ring = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 3f * d }
-    private val ringFill = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val letter = ctx.textPaint(20f, Fonts.regular, R.color.accent)
-    private val title = ctx.textPaint(24f, Fonts.regular, R.color.text)
-    private val sub = ctx.textPaint(18f, Fonts.regular, R.color.armed_text)
-    private val accent = ctx.getColor(R.color.accent)
-    private val okC = ctx.getColor(R.color.ok)
-    private val armedText = ctx.getColor(R.color.armed_text)
-    private val inactive = ctx.getColor(R.color.inactive)
-    private val txt = ctx.getColor(R.color.text)
-    private val onOk = ctx.getColor(R.color.hold_ring_text)
-    private var st = -1
-
-    fun set(level: Int?) {
-        val v = if (level == 1 || level == 2) level else 0
-        if (v == st) return
-        st = v
-        if (v == 0) {
-            setBackgroundResource(R.drawable.tile)
-            ring.color = inactive; letter.color = inactive; sub.color = inactive; title.color = inactive
-        } else if (v == 1) {
-            title.color = txt
-            setBackgroundResource(R.drawable.tile_armed)
-            ring.color = accent; letter.color = accent; sub.color = armedText
-        } else if (v == 2) {
-            title.color = txt
-            setBackgroundResource(R.drawable.tile_hold)
-            ring.color = okC; letter.color = onOk; sub.color = okC
-            ringFill.color = okC
+        // AutoHold 362x64: off plain, ready blue border, holding green.
+        rect.set(20 * d, 386 * d, 382 * d, 450 * d)
+        when (autoHold) {
+            1 -> { canvas.drawRoundRect(rect, 16 * d, 16 * d, well); stroke.color = armedBorder }
+            2 -> { fill.color = connStart; canvas.drawRoundRect(rect, 16 * d, 16 * d, fill); stroke.color = holdBorder }
+            else -> canvas.drawRoundRect(rect, 16 * d, 16 * d, well)
         }
-        invalidate()
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        // Tile 402x94: ring 44 at the left padding 25, two text lines from x85.
-        val cx = 47 * d
-        val cy = height / 2f
-        if (st == 2) canvas.drawCircle(cx, cy, 22 * d, ringFill)
-        canvas.drawCircle(cx, cy, 20.5f * d, ring)
-        canvas.drawText("A", cx - letter.measureText("A") / 2f, letter.baselineForCenter(cy), letter)
-        canvas.drawText("AutoHold", 85 * d, cy - 2 * d, title)
-        canvas.drawText(if (st == 1) armedLabel else if (st == 2) holdingText else offText, 85 * d, cy + 21 * d, sub)
+        if (autoHold != 0) {
+            rect.inset(d, d)
+            canvas.drawRoundRect(rect, 15 * d, 15 * d, stroke)
+        }
+        val rcx = 58 * d
+        val rcy = 418 * d
+        ring.color = when (autoHold) { 1 -> accent; 2 -> okC; else -> inactive }
+        if (autoHold == 2) canvas.drawCircle(rcx, rcy, 22 * d, circle.apply { color = okC })
+        canvas.drawCircle(rcx, rcy, 20.5f * d, ring)
+        ahLetter.color = when (autoHold) { 1 -> accent; 2 -> onOk; else -> inactive }
+        canvas.drawText("A", rcx - ahLetter.measureText("A") / 2f, ahLetter.baselineForCenter(rcy), ahLetter)
+        ahTitle.color = if (autoHold == 0) dim else txt
+        canvas.drawText("AutoHold", 96 * d, 427 * d, ahTitle)
+        val st = when (autoHold) { 1 -> armedLabel; 2 -> holdingText; else -> offText }
+        ahState.color = when (autoHold) { 1 -> accent; 2 -> okC; else -> inactive }
+        canvas.drawText(st, 362 * d - ahState.measureText(st), 426 * d, ahState)
     }
 }
 
