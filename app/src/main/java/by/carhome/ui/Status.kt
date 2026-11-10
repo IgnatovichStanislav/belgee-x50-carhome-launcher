@@ -136,27 +136,26 @@ internal class StateTileView(ctx: Context) : View(ctx) {
 }
 
 /**
- * Seat belts tile: two figures, no text. Driver: green / red with "!" and a red tile / grey without data.
+ * «Ремни» (seat belts). Driver: green / red with "!" and a red chip border / grey without data.
  * Passenger: green or neutral grey, never red (the seat has no occupancy sensor).
  */
 internal class BeltsView(ctx: Context) : View(ctx) {
+    private val beltsText = ctx.getString(R.string.belts)
     private val d = ctx.dpf(1f)
+    private val label = ctx.textPaint(20f, Fonts.regular, R.color.text_dim)
     private val icons = arrayOf<Drawable>(
         ctx.getDrawable(R.drawable.ic_seat)!!.mutate(), ctx.getDrawable(R.drawable.ic_seat)!!.mutate(),
     )
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = ctx.getColor(R.color.crit) }
-    private val glyph = ctx.textPaint(17f, Fonts.bold, R.color.on_accent)
+    private val glyph = ctx.textPaint(11f, Fonts.bold, R.color.on_accent)
     private val okC = ctx.getColor(R.color.ok)
     private val crit = ctx.getColor(R.color.crit)
     private val inactive = ctx.getColor(R.color.inactive)
     private val neutral = ctx.getColor(R.color.neutral)
+    private val dim = ctx.getColor(R.color.text_dim)
     private var driver: Boolean? = null
     private var passenger: Boolean? = null
     private var inited = false
-
-    init {
-        contentDescription = ctx.getString(R.string.belts)
-    }
 
     fun set(driver: Boolean?, passenger: Boolean?) {
         if (inited && driver == this.driver && passenger == this.passenger) return
@@ -164,23 +163,36 @@ internal class BeltsView(ctx: Context) : View(ctx) {
         inited = true
         this.driver = driver
         this.passenger = passenger
-        if (warnChanged) setBackgroundResource(if (driver == false) R.drawable.tile_warn else R.drawable.tile)
+        if (warnChanged) {
+            val warn = driver == false
+            setBackgroundResource(if (warn) R.drawable.chip_warn else R.drawable.chip)
+            label.color = if (warn) crit else dim
+        }
         invalidate()
     }
 
+    /** Wraps the content: label + two seat icons, no trailing space. */
+    override fun onMeasure(wSpec: Int, hSpec: Int) {
+        val w = 16 * d + label.measureText(beltsText) + 12 * d + 30 * d + 12 * d + 30 * d + 16 * d
+        setMeasuredDimension(kotlin.math.ceil(w).toInt(), MeasureSpec.getSize(hSpec))
+    }
+
     override fun onDraw(canvas: Canvas) {
-        val sz = 56 * d
-        val gap = 40 * d
-        var x = (width - 2 * sz - gap) / 2f
-        val top = (height - sz) / 2f
+        val cy = height / 2f
+        val pad = (if (driver == false) 17 else 16) * d
+        canvas.drawText(beltsText, pad, label.baselineForCenter(cy), label)
+        var x = pad + label.measureText(beltsText) + 12 * d
+        val sz = (30 * d).toInt()
         for (i in 0..1) {
             val color = if (i == 0) when (driver) { true -> okC; false -> crit; null -> inactive }
             else if (passenger == true) okC else neutral
             icons[i].setTint(color)
-            icons[i].setBounds(x.toInt(), top.toInt(), (x + sz).toInt(), (top + sz).toInt())
+            val top = (cy - sz / 2f).toInt()
+            icons[i].setBounds(x.toInt(), top, x.toInt() + sz, top + sz)
             icons[i].draw(canvas)
-            if (i == 0 && driver == false) canvas.drawBadge(x + 48 * d, top + 10 * d, 12 * d, fill, glyph)
-            x += sz + gap
+            // Small badge kept inside the icon box so it does not merge with the red chip border.
+            if (i == 0 && driver == false) canvas.drawBadge(x + sz - 4 * d, top + 5 * d, 7 * d, fill, glyph)
+            x += sz + 12 * d
         }
     }
 }

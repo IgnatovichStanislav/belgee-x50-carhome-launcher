@@ -203,10 +203,9 @@ class HomeView(
         put(fuelBar, 41f, 441f, px(352f), px(18f))
         fuelBar.mark = Thresholds.FUEL_LOW_LITERS / by.carhome.data.EcarxCarDataSource.FUEL_TANK_L
 
-        // right column: car state, battery + belts halves, AutoHold
+        // right column: car state, battery, AutoHold
         put(state, 1342f, 115f, px(402f), px(210f))
-        put(battery, 1342f, 339f, px(194f), px(131f))
-        put(belts, 1550f, 339f, px(194f), px(131f))
+        put(battery, 1342f, 339f, px(402f), px(131f))
         put(autoHold, 1342f, 484f, px(402f), px(102f))
         val heat = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
         val kinds = Heat.values()
@@ -221,8 +220,12 @@ class HomeView(
         }
         put(heat, 16f, 484f, px(402f), px(102f))
 
-        // under the car: gears centred (238 wide → 761, centre 880), level with the bottom side row; door banner above the car
+        // under the car: gears centred (238 wide → 761, centre 880), belts chip flush right (ends at 1326);
+        // both level with the bottom side row. Door banner above the car.
         put(gear, 761f, 509f)
+        addView(belts, LayoutParams(WRAP, px(52f)).apply {
+            gravity = Gravity.TOP or Gravity.END; rightMargin = px(434f); topMargin = px(509f)
+        })
         put(doors, 530f, 124f, px(700f), px(46f))
         doors.visibility = View.GONE
 
