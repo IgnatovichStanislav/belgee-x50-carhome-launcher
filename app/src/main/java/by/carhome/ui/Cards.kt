@@ -397,7 +397,7 @@ internal class ClimateCardView(ctx: Context) : View(ctx) {
     }
 }
 
-/** Radio: same dark 72 px square as all apps, with the Material "radio" glyph. */
+/** Radio: same dark 72 px square as all apps, with the Material Symbols "radio" glyph. */
 internal class RadioIconDrawable(ctx: Context) : Drawable() {
     private val d = ctx.dpf(1f)
     private val bg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = ctx.getColor(R.color.allapps_bg) }
