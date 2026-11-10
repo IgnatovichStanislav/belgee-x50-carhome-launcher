@@ -2,7 +2,6 @@
 <resources>
     <color name="bg_edge">#0B1017</color>
     <color name="tile">#0FFFFFFF</color>
-    <color name="well">#0DFFFFFF</color>
     <color name="line">#1FFFFFFF</color>
     <color name="text">#F2F5F9</color>
     <color name="text_dim">#9AA6B8</color>
