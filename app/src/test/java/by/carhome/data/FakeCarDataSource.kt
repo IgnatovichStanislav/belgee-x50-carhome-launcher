@@ -25,10 +25,9 @@ object FakeStates {
         steeringHeat = false, nozzleHeat = false, windshieldHeat = false,
     )
 
-    /** Driver door open, AutoHold holding, steering and windshield heat on, low fuel, coolant warning, low battery. */
+    /** Driver door open, AutoHold holding, steering and windshield heat on, low fuel, coolant warning. */
     fun warning() = normal().copy(
         speedKmh = 0,
-        batteryV = 11.2f,
         rangeKm = 52, fuelLiters = 6.3f, tripKm = 12.4f,
         coolantOverheat = true,
         beltDriver = false, beltPassenger = true,
@@ -39,8 +38,8 @@ object FakeStates {
         climate = normal().climate.copy(airflow = Airflow.WINDOW),
     )
 
-    /** Widest values the car-state tile has to fit: 6-digit odometer, 5-digit service, 4-digit trip. */
-    fun bigNumbers() = normal().copy(tripKm = 1234.5f, odometerKm = 999_999, serviceKm = 15_000)
+    /** Widest values to fit: 6-digit odometer, 5-digit service, 4-digit trip; AutoHold off, so no chips at all. */
+    fun bigNumbers() = normal().copy(tripKm = 1234.5f, odometerKm = 999_999, serviceKm = 15_000, autoHold = 0)
 
     /** Service overdue (negative distance), no data for trip and the tyres. */
     fun serviceOverdue() = normal().copy(tripKm = null, serviceKm = -1200, tireWarning = null)

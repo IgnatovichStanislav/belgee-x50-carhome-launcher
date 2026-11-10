@@ -63,6 +63,8 @@
     <string name="heat_wheel">Руль</string>
     <string name="heat_nozzle">Форсунки</string>
     <string name="heat_glass">Лобовое</string>
+    <string name="trip">Поездка</string>
+    <string name="odometer">Пробег</string>
     <string name="speed">Скорость</string>
     <string name="range">Запас хода</string>
     <string name="fuel_low">Мало топлива</string>
@@ -91,9 +93,7 @@
     <string name="state_fault">Неисправность</string>
     <string name="state_ok">Норма</string>
     <string name="state_no_data">нет данных</string>
-    <string name="trip_km">Поездка, км</string>
-    <string name="odometer_km">Пробег, км</string>
-    <string name="service_km">До ТО, км</string>
+    <string name="service">До ТО</string>
     <string name="belts">Ремни</string>
     <string name="autohold_armed">готов</string>
     <string name="autohold_holding">держит</string>
