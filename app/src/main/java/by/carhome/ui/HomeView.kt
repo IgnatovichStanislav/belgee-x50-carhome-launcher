@@ -189,20 +189,21 @@ class HomeView(
         addView(trg, LayoutParams(WRAP, px(80f)).apply { gravity = Gravity.END or Gravity.TOP; rightMargin = px(20f); topMargin = px(16f) })
 
         // left tiles
-        tile(16f, 115f, 402f, 238f)
+        // Columns end 14 px above the app row (y600), like every other gap: rows 115..366 and 381..586.
+        tile(16f, 115f, 402f, 251f)
         putRun(RunView(ctx, paints(ctx.textPaint(20f, Fonts.regular, R.color.text_dim))).apply { setParts(ctx.getString(R.string.speed)) }, 41f, 149f)
-        putRun(speed, 41f, 290f)
-        put(rangeTile, 16f, 368f, px(402f), px(192f))
-        putRun(rangeKey.apply { setParts(rangeText) }, 41f, 402f)
-        put(rangeBadge, 41f, 385f)
+        putRun(speed, 41f, 300f)
+        put(rangeTile, 16f, 381f, px(402f), px(205f))
+        putRun(rangeKey.apply { setParts(rangeText) }, 41f, 418f)
+        put(rangeBadge, 41f, 401f)
         rangeBadge.visibility = View.GONE
-        putRun(rangeBig, 41f, 466f)
-        put(fuelBar, 41f, 500f, px(352f), px(18f))
+        putRun(rangeBig, 41f, 482f)
+        put(fuelBar, 41f, 516f, px(352f), px(18f))
         fuelBar.mark = Thresholds.FUEL_LOW_LITERS / by.carhome.data.EcarxCarDataSource.FUEL_TANK_L
 
         // right column
-        put(state, 1342f, 115f, px(402f), px(238f))
-        put(battery, 1342f, 368f, px(402f), px(84f))
+        put(state, 1342f, 115f, px(402f), px(251f))
+        put(battery, 1342f, 381f, px(402f), px(97f))
         val heat = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
         val kinds = Heat.values()
         for ((i, b) in heaters.withIndex()) {
@@ -214,16 +215,16 @@ class HomeView(
             }
             heat.addView(b, LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1f).apply { if (i > 0) leftMargin = px(10f) })
         }
-        put(heat, 1342f, 466f, px(402f), px(94f))
+        put(heat, 1342f, 492f, px(402f), px(94f))
 
         // under the car: gear, AutoHold, belts; door banner above the car
         // Row under the car is symmetric inside the car area (x 434..1326, centre 880):
         // AutoHold flush left, gears centred under the car (238 wide → 761), belts chip flush right next to the heaters.
         // The two chips appear only when needed (AutoHold on, driver unbuckled); fixed slots keep the gears in place.
-        put(autoHold, 434f, 508f, px(240f), px(52f))
-        put(gear, 761f, 508f)
+        put(autoHold, 434f, 513f, px(240f), px(52f))
+        put(gear, 761f, 513f)
         addView(belts, LayoutParams(WRAP, px(52f)).apply {
-            gravity = Gravity.TOP or Gravity.END; rightMargin = px(434f); topMargin = px(508f)
+            gravity = Gravity.TOP or Gravity.END; rightMargin = px(434f); topMargin = px(513f)
         })
         put(doors, 530f, 124f, px(700f), px(46f))
         doors.visibility = View.GONE
