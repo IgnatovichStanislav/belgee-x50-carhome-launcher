@@ -152,23 +152,25 @@ internal class CarStateBlockView(ctx: Context) : View(ctx) {
         // shrunk together when the widest one does not fit, so nothing overlaps.
         val colW = 402f / 3
         val maxW = (colW - 12) * d
+        // One frame 402x66 around the three, like the cells below.
+        cell(canvas, 0f, 0f, 402f, 66f, false)
         infoKey.textSize = infoKey.commonSize(infoLabels, 16 * d, maxW)
         infoVal.textSize = infoVal.commonSize(info.toList(), 28 * d, maxW)
         for (i in 0..2) {
             val cx = (colW * i + colW / 2) * d
-            if (i > 0) canvas.drawRect(colW * i * d, 4 * d, colW * i * d + d, 54 * d, linePaint)
-            canvas.drawText(infoLabels[i], cx - infoKey.measureText(infoLabels[i]) / 2f, 16 * d, infoKey)
+            if (i > 0) canvas.drawRect(colW * i * d, 12 * d, colW * i * d + d, 54 * d, linePaint)
+            canvas.drawText(infoLabels[i], cx - infoKey.measureText(infoLabels[i]) / 2f, 25 * d, infoKey)
             infoVal.color = if (info[i] == "—") inactive else txt
-            canvas.drawText(info[i], cx - infoVal.measureText(info[i]) / 2f, 50 * d, infoVal)
+            canvas.drawText(info[i], cx - infoVal.measureText(info[i]) / 2f, 55 * d, infoVal)
         }
 
-        // Systems 2x2: cells 194x66.
+        // Systems 2x2: cells 194x61, the second row ends level with «Скорость» (210).
         for (i in 0 until 4) {
             val x = if (i % 2 == 0) 0f else 208f
-            val y = if (i < 2) 70f else 144f
+            val y = if (i < 2) 80f else 149f
             val f = flags[i]
-            cell(canvas, x, y, 194f, 66f, f == true)
-            val cy = (y + 33) * d
+            cell(canvas, x, y, 194f, 61f, f == true)
+            val cy = (y + 30.5f) * d
             val ccx = (x + 16 + 17) * d
             circle.color = when (f) { true -> crit; false -> okC; null -> inactive }
             canvas.drawCircle(ccx, cy, 17 * d, circle)
