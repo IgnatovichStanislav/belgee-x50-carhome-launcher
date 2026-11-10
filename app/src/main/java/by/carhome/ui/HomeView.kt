@@ -22,7 +22,6 @@ import by.carhome.data.BatteryLevel
 import by.carhome.data.CarState
 import by.carhome.data.Heat
 import by.carhome.data.Thresholds
-import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
@@ -277,8 +276,6 @@ class HomeView(
         if (!paused && motionEnabled) streaks.setActive((last?.speedKmh ?: 0) > 0)
     }
 
-    private fun f1(v: Float?) = oneDecimal(v)
-
     /** Updates only the widgets whose values changed. */
     fun render(n: CarState) {
         val o = last
@@ -286,15 +283,15 @@ class HomeView(
         if (o == null || o.wifiSsid != n.wifiSsid) wifi.set(n.wifiSsid ?: context.getString(R.string.no_wifi), n.wifiSsid != null)
         if (o == null || o.btDevice != n.btDevice) bt.set(n.btDevice ?: context.getString(R.string.no_bt), n.btDevice != null)
 
-        if (o == null || o.tripKm != n.tripKm) tripVal.setParts(f1(n.tripKm), km)
-        if (o == null || o.odometerKm != n.odometerKm) odoVal.setParts(n.odometerKm?.let { groupThousands(it) } ?: "—", km)
+        if (o == null || o.tripKm != n.tripKm) tripVal.setParts(oneDecimal(n.tripKm), km)
+        if (o == null || o.odometerKm != n.odometerKm) odoVal.setParts(distanceText(n.odometerKm), km)
 
         if (o == null || o.speedKmh != n.speedKmh) {
             speed.setParts(n.speedKmh?.toString() ?: "—", context.getString(R.string.unit_kmh))
             updateMotion()
         }
         if (o == null || o.rangeKm != n.rangeKm || o.fuelLiters != n.fuelLiters) {
-            rangeBig.setParts(n.rangeKm?.toString() ?: "—", context.getString(R.string.unit_km_slash), f1(n.fuelLiters), context.getString(R.string.unit_l))
+            rangeBig.setParts(n.rangeKm?.toString() ?: "—", context.getString(R.string.unit_km_slash), oneDecimal(n.fuelLiters), context.getString(R.string.unit_l))
             fuelBar.progress = (n.fuelLiters ?: 0f) / by.carhome.data.EcarxCarDataSource.FUEL_TANK_L
         }
         if (o == null || o.lowFuel != n.lowFuel) {
@@ -314,7 +311,7 @@ class HomeView(
         doors.set(n.openings)
         if (o == null || o.batteryV != n.batteryV || o.engineRunning != n.engineRunning) {
             val low = n.batteryLevel == by.carhome.data.BatteryLevel.LOW
-            battery.set(f1(n.batteryV), context.getString(R.string.unit_v), low, if (low) critColor else if (n.batteryV == null) dimColor else okColor)
+            battery.set(oneDecimal(n.batteryV), context.getString(R.string.unit_v), low, if (low) critColor else if (n.batteryV == null) dimColor else okColor)
         }
         // Heaters: take the car's state only when it changes (keeps the optimistic toggle until then);
         // a change is the car's answer, so the pending revert is dropped.

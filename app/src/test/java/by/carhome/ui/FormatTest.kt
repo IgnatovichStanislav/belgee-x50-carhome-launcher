@@ -31,4 +31,10 @@ class FormatTest {
         assertEquals("0.0", oneDecimal(0f))
         assertEquals("1234.5", oneDecimal(1234.5f))
     }
+
+    @Test fun distanceWithoutDataIsADash() {
+        assertEquals("—", distanceText(null))
+        assertEquals("25 012", distanceText(25012))
+        assertEquals("−1 200", distanceText(-1200))
+    }
 }

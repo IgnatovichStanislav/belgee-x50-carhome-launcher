@@ -97,7 +97,6 @@
     <string name="belts">Ремни</string>
     <string name="autohold_armed">готов</string>
     <string name="autohold_holding">держит</string>
-    <string name="autohold_off">выкл</string>
 
     <!-- Screen reader descriptions -->
     <string name="a11y_clock">%1$s. Долгое нажатие: включить или выключить запись данных</string>

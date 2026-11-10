@@ -55,4 +55,7 @@ class HomeDayTest {
 
     @Test fun normal() = shoot(paparazzi, "home-day", FakeStates.normal())
     @Test fun warning() = shoot(paparazzi, "home-day-warn", FakeStates.warningClimateOff())
+    @Test fun bigNumbers() = shoot(paparazzi, "home-day-big", FakeStates.bigNumbers())
+    @Test fun serviceOverdue() = shoot(paparazzi, "home-day-overdue", FakeStates.serviceOverdue())
+    @Test fun noData() = shoot(paparazzi, "home-day-nodata", FakeStates.noData())
 }

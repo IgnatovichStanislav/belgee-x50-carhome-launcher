@@ -16,3 +16,6 @@ internal fun groupThousands(n: Int): String {
 
 /** One decimal, "—" without data. */
 internal fun oneDecimal(v: Float?): String = if (v == null) "—" else String.format(Locale.US, "%.1f", v)
+
+/** Distance in km, thousands grouped, "—" without data. */
+internal fun distanceText(km: Int?): String = km?.let { groupThousands(it) } ?: "—"

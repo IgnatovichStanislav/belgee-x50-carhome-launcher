@@ -125,6 +125,12 @@ internal class StateTileView(ctx: Context) : View(ctx) {
     }
 }
 
+/** AutoHold chip only while AutoHold is on (1 armed, 2 holding). */
+internal fun autoHoldChipShown(level: Int?): Boolean = level == 1 || level == 2
+
+/** Belts chip only when it needs attention: the driver is unbuckled (passenger alone never shows it). */
+internal fun beltsChipShown(driver: Boolean?): Boolean = driver == false
+
 /**
  * «Ремни» (seat belts), shown only while the driver is unbuckled: driver red with "!" and a red chip border.
  * Passenger: green or neutral grey, never red (the seat has no occupancy sensor).
@@ -147,6 +153,11 @@ internal class BeltsView(ctx: Context) : View(ctx) {
     private var passenger: Boolean? = null
     private var inited = false
 
+    init {
+        contentDescription = beltsText
+        visibility = GONE // until the driver is reported unbuckled
+    }
+
     fun set(driver: Boolean?, passenger: Boolean?) {
         if (inited && driver == this.driver && passenger == this.passenger) return
         val warnChanged = !inited || (driver == false) != (this.driver == false)
@@ -154,7 +165,7 @@ internal class BeltsView(ctx: Context) : View(ctx) {
         this.driver = driver
         this.passenger = passenger
         // Shown only when it needs attention: the driver is not buckled.
-        visibility = if (driver == false) VISIBLE else GONE
+        visibility = if (beltsChipShown(driver)) VISIBLE else GONE
         if (warnChanged) {
             val warn = driver == false
             setBackgroundResource(if (warn) R.drawable.chip_warn else R.drawable.chip)
@@ -193,7 +204,6 @@ internal class BeltsView(ctx: Context) : View(ctx) {
 internal class AutoHoldView(ctx: Context) : View(ctx) {
     private val armedLabel = ctx.getString(R.string.autohold_armed)
     private val holdingText = ctx.getString(R.string.autohold_holding)
-    private val offText = ctx.getString(R.string.autohold_off)
     private val d = ctx.dpf(1f)
     private val ring = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 2.5f * d }
     private val ringFill = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -203,21 +213,21 @@ internal class AutoHoldView(ctx: Context) : View(ctx) {
     private val accent = ctx.getColor(R.color.accent)
     private val okC = ctx.getColor(R.color.ok)
     private val armedText = ctx.getColor(R.color.armed_text)
-    private val inactive = ctx.getColor(R.color.inactive)
     private val txt = ctx.getColor(R.color.text)
     private val onOk = ctx.getColor(R.color.hold_ring_text)
-    private var st = -1
+    private var st = 0
+
+    init {
+        visibility = GONE // until the car reports AutoHold on
+    }
 
     fun set(level: Int?) {
         val v = if (level == 1 || level == 2) level else 0
         if (v == st) return
         st = v
         // Shown only while AutoHold is on; its slot left of the gears stays reserved, so nothing moves.
-        visibility = if (v == 0) GONE else VISIBLE
-        if (v == 0) {
-            setBackgroundResource(R.drawable.chip)
-            ring.color = inactive; letter.color = inactive; sub.color = inactive; title.color = inactive
-        } else if (v == 1) {
+        visibility = if (autoHoldChipShown(level)) VISIBLE else GONE
+        if (v == 1) {
             title.color = txt
             setBackgroundResource(R.drawable.chip_armed)
             ring.color = accent; letter.color = accent; sub.color = armedText
@@ -237,7 +247,7 @@ internal class AutoHoldView(ctx: Context) : View(ctx) {
         canvas.drawCircle(cx, cy, 14.75f * d, ring)
         canvas.drawText("A", cx - letter.measureText("A") / 2f, letter.baselineForCenter(cy), letter)
         canvas.drawText("AutoHold", 61 * d, 21.5f * d, title)
-        canvas.drawText(if (st == 1) armedLabel else if (st == 2) holdingText else offText, 61 * d, 39.5f * d, sub)
+        canvas.drawText(if (st == 1) armedLabel else holdingText, 61 * d, 39.5f * d, sub)
     }
 }
 
