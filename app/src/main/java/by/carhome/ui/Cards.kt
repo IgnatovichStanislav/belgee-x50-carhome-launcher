@@ -397,6 +397,29 @@ internal class ClimateCardView(ctx: Context) : View(ctx) {
     }
 }
 
+/** Radio: same dark 72 px square as all apps, with the Material "radio" glyph. */
+internal class RadioIconDrawable(ctx: Context) : Drawable() {
+    private val d = ctx.dpf(1f)
+    private val bg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = ctx.getColor(R.color.allapps_bg) }
+    private val glyph = ctx.getDrawable(R.drawable.ic_radio)!!
+    private val rect = RectF()
+    override fun getIntrinsicWidth() = (72 * d).toInt()
+    override fun getIntrinsicHeight() = (72 * d).toInt()
+    override fun draw(canvas: Canvas) {
+        val b = bounds
+        val k = b.width() / (72 * d)
+        rect.set(b)
+        canvas.drawRoundRect(rect, 16 * d * k, 16 * d * k, bg)
+        val inset = (18 * d * k).toInt()
+        glyph.setBounds(b.left + inset, b.top + inset, b.right - inset, b.bottom - inset)
+        glyph.draw(canvas)
+    }
+    override fun setAlpha(a: Int) {}
+    override fun setColorFilter(f: ColorFilter?) {}
+    @Deprecated("Deprecated in Java")
+    override fun getOpacity() = PixelFormat.TRANSLUCENT
+}
+
 /** «Все приложения» (all apps): dark 72 px square with a 2x2 grid. */
 internal class AllAppsIconDrawable(ctx: Context) : Drawable() {
     private val d = ctx.dpf(1f)

@@ -1,6 +1,6 @@
 package by.carhome
 
-enum class TileKind { PLAIN, CLIMATE, CARPLAY, ANDROID_AUTO, ALL_APPS }
+enum class TileKind { PLAIN, CLIMATE, CARPLAY, ANDROID_AUTO, RADIO, ALL_APPS }
 
 /** label/letter are string resources; letter/color: fallback icon when the app is not installed. */
 data class AppSpec(
@@ -19,6 +19,8 @@ object Apps {
         AppSpec(TileKind.CARPLAY, "com.neusoft.carplay", R.string.app_carplay),
         AppSpec(TileKind.CLIMATE, "ecarx.hvac.app", R.string.app_climate),
         AppSpec(TileKind.ANDROID_AUTO, "com.andrerinas.headunitrevived", R.string.app_android_auto),
+        // FM/AM radio lives in the stock media app (with Bluetooth, USB and CarPlay audio).
+        AppSpec(TileKind.RADIO, "com.ecarx.multimedia", R.string.app_radio),
         // Opens the stock app list (ecarx.launcher3/.AppPane), see HomeActivity.openAllApps().
         AppSpec(TileKind.ALL_APPS, "ecarx.launcher3", R.string.app_all),
     )

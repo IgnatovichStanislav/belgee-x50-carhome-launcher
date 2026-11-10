@@ -13,6 +13,11 @@ Icons taken from apps on the head unit
   app/src/main/res/drawable-nodpi/hvac_fm_base.png, hvac_fm_face.png, hvac_fm_foot.png
     Airflow icon from LunarisApp (Lunaris firmware, https://lunaris-firmware.ru).
 
+Open icons
+  app/src/main/res/drawable/ic_radio.xml
+    Material Icons "radio", Copyright Google LLC, Apache License 2.0
+    (https://github.com/google/material-design-icons).
+
 Car picture
   app/src/main/res/drawable-nodpi/car_image.webp
   app/src/main/res/drawable-notnight-nodpi/car_image.webp

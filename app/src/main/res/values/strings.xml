@@ -18,6 +18,7 @@
     <string name="app_climate">Климат</string>
     <string name="app_android_auto" translatable="false">Android Auto</string>
     <string name="app_all">Все приложения</string>
+    <string name="app_radio">Радио</string>
 
     <!-- Toasts -->
     <string name="theme_auto">Тема: авто (по солнцу)</string>

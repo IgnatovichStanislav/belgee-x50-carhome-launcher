@@ -236,7 +236,9 @@ class HomeView(
             val (w, v) = when (spec.kind) {
                 TileKind.PLAIN -> 169f to AppTileView(ctx, spec, iconLoader(spec)
                     ?: LetterIconDrawable(ctx, ctx.getString(spec.letter), spec.color)) as View
-                TileKind.ALL_APPS -> 350f to AppTileView(ctx, spec, AllAppsIconDrawable(ctx), ctx.getString(spec.label)) as View
+                // Radio + all apps share the old 350 px all-apps slot: 169 + 12 + 169.
+                TileKind.RADIO -> 169f to AppTileView(ctx, spec, RadioIconDrawable(ctx)) as View
+                TileKind.ALL_APPS -> 169f to AppTileView(ctx, spec, AllAppsIconDrawable(ctx)) as View
                 TileKind.CLIMATE -> 440f to climate
                 TileKind.CARPLAY -> 270f to StatusCardView(ctx, spec, ctx.getDrawable(R.drawable.car_play_icon)!!,
                     ctx.getDrawable(R.drawable.car_play_dis_icon)!!).also { cp = it }
