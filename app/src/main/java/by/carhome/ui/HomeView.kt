@@ -286,14 +286,14 @@ class HomeView(
         if (o == null || o.wifiSsid != n.wifiSsid) wifi.set(n.wifiSsid ?: context.getString(R.string.no_wifi), n.wifiSsid != null)
         if (o == null || o.btDevice != n.btDevice) bt.set(n.btDevice ?: context.getString(R.string.no_bt), n.btDevice != null)
 
-        if (o?.tripKm != n.tripKm) tripVal.setParts(f1(n.tripKm), km)
-        if (o?.odometerKm != n.odometerKm) odoVal.setParts(n.odometerKm?.let { groupThousands(it) } ?: "—", km)
+        if (o == null || o.tripKm != n.tripKm) tripVal.setParts(f1(n.tripKm), km)
+        if (o == null || o.odometerKm != n.odometerKm) odoVal.setParts(n.odometerKm?.let { groupThousands(it) } ?: "—", km)
 
-        if (o?.speedKmh != n.speedKmh) {
+        if (o == null || o.speedKmh != n.speedKmh) {
             speed.setParts(n.speedKmh?.toString() ?: "—", context.getString(R.string.unit_kmh))
             updateMotion()
         }
-        if (o?.rangeKm != n.rangeKm || o?.fuelLiters != n.fuelLiters) {
+        if (o == null || o.rangeKm != n.rangeKm || o.fuelLiters != n.fuelLiters) {
             rangeBig.setParts(n.rangeKm?.toString() ?: "—", context.getString(R.string.unit_km_slash), f1(n.fuelLiters), context.getString(R.string.unit_l))
             fuelBar.progress = (n.fuelLiters ?: 0f) / by.carhome.data.EcarxCarDataSource.FUEL_TANK_L
         }
@@ -312,9 +312,9 @@ class HomeView(
         belts.set(n.beltDriver, n.beltPassenger)
         autoHold.set(n.autoHold)
         doors.set(n.openings)
-        if (o?.batteryV != n.batteryV || o?.engineRunning != n.engineRunning) {
+        if (o == null || o.batteryV != n.batteryV || o.engineRunning != n.engineRunning) {
             val low = n.batteryLevel == by.carhome.data.BatteryLevel.LOW
-            battery.set(f1(n.batteryV), context.getString(R.string.unit_v), low, if (low) critColor else okColor)
+            battery.set(f1(n.batteryV), context.getString(R.string.unit_v), low, if (low) critColor else if (n.batteryV == null) dimColor else okColor)
         }
         // Heaters: take the car's state only when it changes (keeps the optimistic toggle until then);
         // a change is the car's answer, so the pending revert is dropped.

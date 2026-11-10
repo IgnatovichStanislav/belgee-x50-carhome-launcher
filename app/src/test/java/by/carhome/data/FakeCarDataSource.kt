@@ -44,6 +44,9 @@ object FakeStates {
     /** Service overdue (negative distance), no data for trip and the tyres. */
     fun serviceOverdue() = normal().copy(tripKm = null, serviceKm = -1200, tireWarning = null)
 
+    /** Nothing from the car yet (first seconds after boot): every value must show «—», not stay empty. */
+    fun noData() = CarState(climate = normal().climate.copy(tempLeft = null))
+
     /** Warning fixture with the climate switched off. */
     fun warningClimateOff() = warning().copy(climate = warning().climate.copy(power = false))
 }
