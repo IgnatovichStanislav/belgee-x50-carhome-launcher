@@ -261,7 +261,7 @@ class HomeActivity : Activity() {
             val now = System.currentTimeMillis()
             if (now - sunCheckedAt > 60_000) {
                 sunCheckedAt = now
-                val loc = lastLocation()
+                val loc = lastLocation()?.takeIf { by.carhome.data.SunTimes.usableFix(it.latitude, it.longitude) }
                 sunNight = by.carhome.data.SunTimes.isNight(
                     now, loc?.latitude ?: by.carhome.data.SunTimes.DEFAULT_LAT, loc?.longitude ?: by.carhome.data.SunTimes.DEFAULT_LON,
                 )

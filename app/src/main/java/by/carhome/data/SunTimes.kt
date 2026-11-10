@@ -17,6 +17,13 @@ object SunTimes {
     const val DEFAULT_LAT = 53.90
     const val DEFAULT_LON = 27.56
 
+    /**
+     * A fix worth using for the sun. The head unit reports 0,0 as its "last known" location when it has
+     * never had a fix (seen 2026-11-10): sunset there is ~3.5 h later than in Minsk, so the theme stayed light.
+     */
+    fun usableFix(lat: Double, lon: Double): Boolean =
+        lat in -90.0..90.0 && lon in -180.0..180.0 && !(kotlin.math.abs(lat) < 0.5 && kotlin.math.abs(lon) < 0.5)
+
     /** True if [utcMillis] is before sunrise or after sunset at (lat, lon). Polar day/night handled. */
     fun isNight(utcMillis: Long, lat: Double, lon: Double): Boolean {
         val dayStart = floor(utcMillis / 86_400_000.0) * 86_400_000.0
