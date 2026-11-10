@@ -58,7 +58,7 @@ For Android Auto you also need [Open Headunit](https://github.com/andreknieriem/
 2. Copy the zip to the head unit, install it in Magisk → Modules and reboot.
 3. Press Home and choose BG Car Home as the home app.
 
-Updates without a reboot: `adb install -r bg-car-home-1.0.0-release.apk` (also attached to each release).
+Updates without a reboot: `adb install -r bg-car-home-1.1.0-release.apk` (also attached to each release).
 The module is only needed for the first install and when the app gets new system permissions.
 
 Roll back: remove the "BG Car Home launcher" module in Magisk and reboot. The stock launcher stays in place.
