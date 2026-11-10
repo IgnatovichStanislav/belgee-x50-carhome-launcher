@@ -189,24 +189,25 @@ class HomeView(
         trg.addView(group(keyRun(ctx.getString(R.string.odometer)), 20f, odoVal, vTop(odoVal), 71f, true, false), lp(71f))
         addView(trg, LayoutParams(WRAP, px(80f)).apply { gravity = Gravity.END or Gravity.TOP; rightMargin = px(20f); topMargin = px(16f) })
 
-        // Side columns share one grid: x16 / x1342, w402; rows y115 h200, y329 h123, y466 h94; gap 14.
+        // Side columns share one grid: x16 / x1342, w402; rows y115 h210, y339 h131, y484 h102;
+        // gap 14 between rows and above the app row (y600).
         // left column: speed, range, heaters
-        tile(16f, 115f, 402f, 200f)
+        tile(16f, 115f, 402f, 210f)
         putRun(RunView(ctx, paints(ctx.textPaint(20f, Fonts.regular, R.color.text_dim))).apply { setParts(ctx.getString(R.string.speed)) }, 41f, 149f)
-        putRun(speed, 41f, 287f)
-        put(rangeTile, 16f, 329f, px(402f), px(123f))
-        putRun(rangeKey.apply { setParts(rangeText) }, 41f, 361f)
-        put(rangeBadge, 41f, 344f)
+        putRun(speed, 41f, 296f)
+        put(rangeTile, 16f, 339f, px(402f), px(131f))
+        putRun(rangeKey.apply { setParts(rangeText) }, 41f, 372f)
+        put(rangeBadge, 41f, 355f)
         rangeBadge.visibility = View.GONE
-        putRun(rangeBig, 41f, 413f)
-        put(fuelBar, 41f, 426f, px(352f), px(18f))
+        putRun(rangeBig, 41f, 427f)
+        put(fuelBar, 41f, 441f, px(352f), px(18f))
         fuelBar.mark = Thresholds.FUEL_LOW_LITERS / by.carhome.data.EcarxCarDataSource.FUEL_TANK_L
 
         // right column: car state, battery + belts halves, AutoHold
-        put(state, 1342f, 115f, px(402f), px(200f))
-        put(battery, 1342f, 329f, px(194f), px(123f))
-        put(belts, 1550f, 329f, px(194f), px(123f))
-        put(autoHold, 1342f, 466f, px(402f), px(94f))
+        put(state, 1342f, 115f, px(402f), px(210f))
+        put(battery, 1342f, 339f, px(194f), px(131f))
+        put(belts, 1550f, 339f, px(194f), px(131f))
+        put(autoHold, 1342f, 484f, px(402f), px(102f))
         val heat = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
         val kinds = Heat.values()
         for ((i, b) in heaters.withIndex()) {
@@ -218,10 +219,10 @@ class HomeView(
             }
             heat.addView(b, LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1f).apply { if (i > 0) leftMargin = px(14f) })
         }
-        put(heat, 16f, 466f, px(402f), px(94f))
+        put(heat, 16f, 484f, px(402f), px(102f))
 
-        // under the car: gears centred (238 wide → 761, centre 880); door banner above the car
-        put(gear, 761f, 508f)
+        // under the car: gears centred (238 wide → 761, centre 880), level with the bottom side row; door banner above the car
+        put(gear, 761f, 509f)
         put(doors, 530f, 124f, px(700f), px(46f))
         doors.visibility = View.GONE
 

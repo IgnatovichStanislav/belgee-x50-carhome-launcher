@@ -104,7 +104,7 @@ internal class StateTileView(ctx: Context) : View(ctx) {
         canvas.drawText(titleText, 25 * d, 37 * d, title)
         for (i in 0 until 4) {
             val x = 25 * d + (i % 2) * 181 * d
-            val cy = (72 + (i / 2) * 52) * d
+            val cy = (76 + (i / 2) * 54) * d
             val cx = x + 17 * d
             val f = flags[i]
             circle.color = when (f) { true -> crit; false -> okC; null -> inactive }
@@ -129,9 +129,9 @@ internal class StateTileView(ctx: Context) : View(ctx) {
             canvas.drawText(status, tx, cy + 15 * d, sP)
         }
         // service row
-        canvas.drawRect(25 * d, 152 * d, width - 25 * d, 153 * d, linePaint)
-        canvas.drawText(serviceLabel, 25 * d, 178 * d, svcL)
-        canvas.drawText(serviceText, width - 25 * d - svcV.measureText(serviceText), 178 * d, svcV)
+        canvas.drawRect(25 * d, 160 * d, width - 25 * d, 161 * d, linePaint)
+        canvas.drawText(serviceLabel, 25 * d, 187 * d, svcL)
+        canvas.drawText(serviceText, width - 25 * d - svcV.measureText(serviceText), 187 * d, svcV)
     }
 }
 

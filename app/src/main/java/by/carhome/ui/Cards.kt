@@ -72,8 +72,8 @@ internal class StatTileView(ctx: Context, private val lines: List<String>) : Vie
     // Half-width tile: label on top, value under it, both left-aligned.
     override fun onDraw(canvas: Canvas) {
         val x0 = 25 * d
-        val lb = 42 * d
-        val vb = 96 * d
+        val lb = 44 * d
+        val vb = 101 * d
         val off = if (warn) 32 * d else 0f
         canvas.drawText(lines[0], x0 + off, lb, label)
         if (warn) canvas.drawBadge(x0 + 12 * d, lb - 6 * d, 12 * d, badge, glyph)
